@@ -82,16 +82,22 @@ function scalar(sql, bind) {
 function typeAndCategoryClause(types, categories) {
   const wanted = types.filter((t) => t in TYPE_COL);
   if (!wanted.length) return { sql: " AND 0 ", bind: [] };
-  const useCats = wanted.includes("bookmark") && categories.length > 0;
+  const cats = (categories || []).filter(Boolean);
+  const wantNone = cats.includes("__none__");
+  const realCats = cats.filter((c) => c !== "__none__");
+  const useCats = wanted.includes("bookmark") && cats.length > 0;
   if (wanted.length >= TYPE_FLAGS.length && !useCats) return { sql: "", bind: [] };
   const parts = [];
   const bind = [];
   if (wanted.includes("bookmark")) {
     if (useCats) {
-      parts.push(
-        `(b.is_bookmark = 1 AND b.bookmark_category IN (${categories.map(() => "?").join(",")}))`,
-      );
-      bind.push(...categories);
+      const conds = [];
+      if (realCats.length) {
+        conds.push(`b.bookmark_category IN (${realCats.map(() => "?").join(",")})`);
+        bind.push(...realCats);
+      }
+      if (wantNone) conds.push(`(b.bookmark_category IS NULL OR b.bookmark_category = '')`);
+      parts.push(`(b.is_bookmark = 1 AND (${conds.join(" OR ")}))`);
     } else {
       parts.push("b.is_bookmark = 1");
     }
@@ -244,6 +250,11 @@ function loadStats() {
     if (keep.has(row.c)) o.selected = true;
     sel.appendChild(o);
   });
+  const noneOpt = document.createElement("option");
+  noneOpt.value = "__none__";
+  noneOpt.textContent = "(No folder)";
+  if (keep.has("__none__")) noneOpt.selected = true;
+  sel.appendChild(noneOpt);
   syncCatWrap();
 }
 
@@ -453,6 +464,15 @@ $("f").addEventListener("submit", (e) => {
 });
 document.querySelectorAll(".type").forEach((el) => {
   el.addEventListener("change", syncCatWrap);
+});
+$("category").addEventListener("change", () => {
+  const vals = [...$("category").selectedOptions].map((o) => o.value).filter(Boolean);
+  if (vals.length) {
+    document.querySelectorAll(".type").forEach((el) => {
+      el.checked = el.value === "bookmark";
+    });
+  }
+  syncCatWrap();
 });
 syncCatWrap();
 

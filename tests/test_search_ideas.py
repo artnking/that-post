@@ -197,6 +197,28 @@ def test_category_list_filters_bookmarks(db):
     assert [r["id"] for r in rows] == ["1"]
 
 
+def test_category_none_matches_uncategorized_bookmarks(db):
+    import search_ideas
+
+    rows = search_ideas.search(
+        q="", include_undated=True, types=["bookmark"], category=["__none__"]
+    )
+    assert [r["id"] for r in rows] == ["3"]
+
+
+def test_category_real_plus_none_unions(db):
+    import search_ideas
+
+    rows = search_ideas.search(
+        q="",
+        include_undated=True,
+        types=["bookmark"],
+        category=["Fertility", "__none__"],
+        sort="newest",
+    )
+    assert [r["id"] for r in rows] == ["1", "3"]
+
+
 def test_limit_2_returns_two(db):
     import search_ideas
 

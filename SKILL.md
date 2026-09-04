@@ -1,7 +1,7 @@
 ---
 name: that-post
 description: "Idea search over your X bookmarks, likes, and posts."
-version: 1.3.0
+version: 1.3.1
 author: Art King, Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -143,6 +143,10 @@ explains AND / OR / quotes / `*` / NOT — no FTS jargon in the UI.
 
 Phone: `publish.bat` encrypts a stripped copy (`raw_json` removed) and
 uploads with the Netlify API. Same URL on later runs. Publish PIN is 4 digits ≠ 1234.
+
+Bookmark folders: picking one or more folders in the search page narrows to
+bookmarks only (other type boxes auto-uncheck). `(No folder)` at the bottom
+matches the 89-ish uncategorized bookmarks; it combines with real folders.
 
 Schedule: the user’s agent cron can run `python3 scripts/sync_x.py`. Do not
 assume a particular autostart wrapper.

@@ -1,6 +1,6 @@
 # That Post — roadmap
 
-Updated 2026-09-02. Display name **That Post** (skill id `that-post`).
+Updated 2026-09-04. Display name **That Post** (skill id `that-post`). Version **1.3.1**.
 
 Install is **two parts**. They are different products:
 
@@ -35,6 +35,10 @@ Public zip must not include `data/ideas.sqlite`. Use `templates/empty.sqlite`.
   Reload the page after a sync to see new rows. Default sort: **Newest**.
 - UI: dark page; our mark (not official X logo). Photo: PC right aside;
   phone small beside title, top ~¼.
+- Bookmark folders: picking a folder narrows to bookmarks only (other type
+  boxes auto-uncheck). `(No folder)` matches uncategorized bookmarks.
+- Sketches (not shipped): `sketches/004-warm-editorial-v3` — approved Warm
+  Editorial look (floating search band + Refine rail). Not yet ported to `gui/`.
 - Weekly Hermes cron: **paused** (job `4808c4e2b14c`)
 - Autostart: `\IdeasOnX_Web` → `launch_gui.py --no-open`
 

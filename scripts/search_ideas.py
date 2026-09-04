@@ -108,14 +108,19 @@ def _type_and_category_clause(
     params: dict[str, Any] = {}
     if "bookmark" in wanted:
         if use_cats:
-            ph = []
-            for i, c in enumerate(categories):
-                k = f"cat_{i}"
-                params[k] = c
-                ph.append(f":{k}")
-            parts.append(
-                "(b.is_bookmark = 1 AND b.bookmark_category IN (" + ", ".join(ph) + "))"
-            )
+            want_none = "__none__" in categories
+            real = [c for c in categories if c != "__none__"]
+            conds = []
+            if real:
+                ph = []
+                for i, c in enumerate(real):
+                    k = f"cat_{i}"
+                    params[k] = c
+                    ph.append(f":{k}")
+                conds.append("b.bookmark_category IN (" + ", ".join(ph) + ")")
+            if want_none:
+                conds.append("(b.bookmark_category IS NULL OR b.bookmark_category = '')")
+            parts.append("(b.is_bookmark = 1 AND (" + " OR ".join(conds) + "))")
         else:
             parts.append("b.is_bookmark = 1")
     for t in wanted:
