@@ -62,11 +62,15 @@
     max-width: 34rem;
   }
   .photo-card {
+    display: none;
     border: 1px solid var(--line);
     border-radius: 18px;
     overflow: hidden;
     background: #fff;
     box-shadow: 0 14px 40px rgba(60,40,20,.12);
+  }
+  @media (min-width: 960px) {
+    .photo-card { display: block; }
   }
   .photo-card img { display: block; width: 100%; height: 190px; object-fit: cover; object-position: center 18%; }
   .photo-card figcaption { padding: 10px 12px; font-size: 12px; color: var(--muted); }
@@ -190,8 +194,6 @@
   }
   @media (max-width: 860px) {
     .masthead-inner { grid-template-columns: 1fr; }
-    .photo-card { display: grid; grid-template-columns: 120px 1fr; align-items: stretch; }
-    .photo-card img { height: 100%; min-height: 96px; }
     h1 { font-size: 34px; }
     .layout { grid-template-columns: 1fr; }
     .filters { position: static; }
