@@ -15,8 +15,8 @@ from pathlib import Path
 
 SCRIPTS = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPTS))
-from auth_x import ENV_FILE, TOKEN_URL, load_client, upsert_env  # noqa: E402
-from ingest_bookmarks import load_env  # noqa: E402
+from auth_x import TOKEN_URL, load_client, upsert_env  # noqa: E402
+from paths import load_env  # noqa: E402
 
 
 def refresh() -> int:

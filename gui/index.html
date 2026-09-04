@@ -3,77 +3,294 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Ideas on X</title>
+  <title>That Post</title>
   <style>
+    :root {
+      --bg: #0a0a0a;
+      --bg-2: #141414;
+      --ink: #f4f4f5;
+      --muted: #a1a1aa;
+      --line: #2a2a2a;
+      --accent: #e8e8e8;
+      --chip: #1c1c1c;
+      --danger: #f87171;
+      --radius: 12px;
+    }
     * { box-sizing: border-box; }
+    html, body { min-height: 100%; }
     body {
       margin: 0;
-      font: 15px/1.45 "Segoe UI", system-ui, sans-serif;
-      color: #1b1b1b;
-      background: #f4f3ef;
+      font: 15px/1.45 ui-sans-serif, "Segoe UI", system-ui, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased;
     }
+    .photo-aside {
+      display: none;
+    }
+    @media (min-width: 960px) {
+      .photo-aside {
+        display: block;
+        position: fixed;
+        top: 28px;
+        right: 28px;
+        width: 240px;
+        z-index: 2;
+        pointer-events: none;
+      }
+      .photo-aside img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        box-shadow: 0 18px 50px rgba(0,0,0,.45);
+      }
+      .wrap {
+        padding-right: 300px;
+      }
+    }
+    .wrap { position: relative; z-index: 1; }
     header {
-      padding: 18px 22px 8px;
-      border-bottom: 1px solid #ddd8cc;
-      background: #fffdf8;
+      padding: 22px 22px 12px;
+      border-bottom: 1px solid var(--line);
+      background: #111;
     }
-    h1 { font-size: 18px; margin: 0 0 12px; font-weight: 650; }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0 0 10px;
+    }
+    .photo-mobile { display: none; }
+    @media (max-width: 959px) {
+      .brand-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin: 0 0 12px;
+        height: 25vh;
+        max-height: 25vh;
+      }
+      .brand {
+        margin: 0;
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+      .photo-mobile {
+        display: block;
+        height: 100%;
+        width: auto;
+        max-width: 48%;
+        object-fit: cover;
+        object-position: center 18%;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        flex: 0 0 auto;
+      }
+    }
+    .mark {
+      width: 40px;
+      height: 40px;
+      flex: 0 0 40px;
+    }
+    .mark svg { display: block; width: 100%; height: 100%; }
+    h1 {
+      font-size: 22px;
+      margin: 0;
+      font-weight: 720;
+      letter-spacing: -0.03em;
+    }
+    .tag {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0 0 16px;
+      max-width: 36rem;
+    }
+    .tag strong { color: var(--ink); font-weight: 600; }
+    #catwrap { display: none; flex-direction: column; gap: 4px; font-size: 13px; }
+    #category { min-width: 160px; min-height: 5.5em; background: var(--bg-2); color: var(--ink); border-color: var(--line); }
     .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
-    input[type="search"], input[type="text"], input[type="date"], select {
+    input[type="search"], input[type="text"], input[type="date"], input[type="password"], select {
       font: inherit;
-      padding: 7px 9px;
-      border: 1px solid #c9c3b6;
-      border-radius: 6px;
-      background: #fff;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--bg-2);
+      color: var(--ink);
     }
-    input[type="search"] { flex: 1 1 280px; min-width: 200px; }
+    input[type="search"] {
+      flex: 1 1 280px;
+      min-width: 200px;
+      min-height: 44px;
+      font-size: 16px;
+    }
     button {
       font: inherit;
-      padding: 7px 14px;
+      font-weight: 650;
+      padding: 10px 16px;
+      min-height: 44px;
       border: 0;
-      border-radius: 6px;
-      background: #1d4ed8;
-      color: #fff;
+      border-radius: 10px;
+      background: var(--accent);
+      color: #111;
       cursor: pointer;
     }
-    button.secondary { background: #4b5563; }
+    button:hover { filter: brightness(1.08); }
     button:disabled { opacity: .55; cursor: wait; }
-    label.chk { display: inline-flex; gap: 5px; align-items: center; font-size: 13px; }
-    .hint { color: #666; font-size: 12px; margin: 0 0 6px; }
-    .stats { color: #444; font-size: 13px; margin: 6px 0 0; }
-    .toast { color: #9a3412; font-size: 13px; min-height: 1.2em; }
-    main { padding: 14px 22px 40px; max-width: 820px; }
-    .card {
-      background: #fff;
-      border: 1px solid #e4dfd4;
-      border-radius: 8px;
+    label.chk {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      font-size: 13px;
+      background: var(--chip);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 10px;
+    }
+    .help, .filters { margin: 0 0 10px; max-width: 42rem; }
+    .help summary, .filters summary {
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 13px;
+      width: fit-content;
+      list-style: none;
+    }
+    .help summary::-webkit-details-marker,
+    .filters summary::-webkit-details-marker { display: none; }
+    .help summary::after, .filters summary::after { content: " ▾"; font-size: 11px; }
+    .help[open] summary::after, .filters[open] summary::after { content: " ▴"; }
+    .help-body, .filters-body {
+      margin-top: 8px;
+      background: var(--bg-2);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
       padding: 12px 14px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .help-body p { margin: 0 0 8px; color: var(--ink); }
+    .help-body ul { margin: 0; padding-left: 1.2em; }
+    .help-body li { margin: 0 0 6px; }
+    .help-body code {
+      font: 12px/1.3 ui-monospace, Consolas, monospace;
+      background: #000;
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: #e5e5e5;
+    }
+    .stats { color: var(--muted); font-size: 12px; margin: 8px 0 0; }
+    .toast { color: var(--danger); font-size: 13px; min-height: 1.2em; }
+    main { padding: 16px 22px 48px; max-width: 820px; }
+    .card {
+      background: var(--bg-2);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px 16px;
       margin-bottom: 10px;
     }
-    .meta { color: #555; font-size: 13px; margin-bottom: 4px; }
-    .summary { margin: 4px 0; }
-    .kw { color: #555; font-size: 12px; }
-    .snip { color: #333; font-size: 13px; margin-top: 6px; }
-    a { color: #1d4ed8; }
-    .empty { color: #666; padding: 24px 0; }
-    .flags { font-size: 11px; color: #555; }
+    .meta { color: var(--muted); font-size: 13px; margin-bottom: 6px; }
+    .summary { margin: 4px 0; color: var(--ink); }
+    .kw { color: var(--muted); font-size: 12px; }
+    .snip { color: #d4d4d8; font-size: 13px; margin-top: 6px; }
+    a { color: #fff; }
+    .donate-line {
+      margin: 0 0 12px;
+      font-size: 13px;
+    }
+    a.donate {
+      color: var(--muted);
+      text-decoration: none;
+      border-bottom: 1px solid var(--line);
+    }
+    a.donate:hover { color: var(--ink); }
+    .empty { color: var(--muted); padding: 28px 0; }
+    .flags { font-size: 11px; color: #71717a; }
+    .more { margin: 16px 0 8px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .shown { color: var(--muted); font-size: 13px; }
+    #gate {
+      position: fixed; inset: 0; z-index: 20;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    #gate[hidden] { display: none !important; }
+    #gate .box {
+      background: var(--bg-2);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 22px 22px 18px;
+      max-width: 22rem;
+      width: 100%;
+    }
+    #gate p { margin: 0 0 12px; }
+    #gate input[type="password"] { width: 100%; margin-bottom: 10px; min-height: 44px; }
+    @media (max-width: 640px) {
+      header, main { padding-left: 14px; padding-right: 14px; }
+      input[type="search"] { flex: 1 1 100%; min-width: 0; }
+      .row button[type="submit"] { width: 100%; }
+      h1 { font-size: 20px; }
+    }
   </style>
 </head>
 <body>
+  <aside class="photo-aside" aria-hidden="true">
+    <img src="/assets/bg-phone.jpg?v=2" alt="">
+  </aside>
+  <div class="wrap">
+  <div id="gate" hidden>
+    <div class="box">
+      <p>This copy is locked. Enter the 4-digit Publish PIN.</p>
+      <form id="gateform">
+        <input type="password" id="gatepw" autocomplete="current-password" inputmode="numeric" maxlength="4" placeholder="4-digit PIN">
+        <button type="submit">Unlock</button>
+      </form>
+      <p class="toast" id="gateerr"></p>
+    </div>
+  </div>
   <header>
-    <h1>Ideas on X</h1>
+    <div class="brand-row">
+    <div class="brand">
+      <div class="mark" aria-hidden="true">
+        <svg viewBox="0 0 40 40" role="img">
+          <rect width="40" height="40" rx="10" fill="#111"/>
+          <path d="M11 11 L29 29" stroke="#f4f4f5" stroke-width="4.2" stroke-linecap="round"/>
+          <path d="M29 11 L11 29" stroke="#f4f4f5" stroke-width="4.2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h1>That Post</h1>
+    </div>
+    <img class="photo-mobile" src="/assets/bg-phone.jpg?v=2" alt="">
+    </div>
+    <p class="tag">Find that post you saved and can’t find on <strong>X</strong>. Search your own bookmarks, likes, and posts by idea — not by scrolling.</p>
+    <p class="donate-line"><a class="donate" href="https://www.paypal.me/artnking" target="_blank" rel="noopener noreferrer">Donate</a></p>
     <form id="f">
       <div class="row">
-        <input type="search" id="q" name="q" placeholder="idea, topic, or FTS query" autocomplete="off">
+        <input type="search" id="q" name="q" placeholder="Try an idea you remember saving" autocomplete="off">
         <button type="submit">Search</button>
-        <button type="button" class="secondary" id="interpret">Interpret</button>
       </div>
-      <p class="hint">Search is free FTS5. Multiple words are AND — use OR between alternatives. Interpret fills the form from a sentence (OpenRouter).</p>
+      <details class="help">
+        <summary>Query Help</summary>
+        <div class="help-body">
+          <p>Type a word or a few words, then Search. Results match the post text and any notes or keywords saved with it.</p>
+          <ul>
+            <li><strong>Several words</strong> — a post must include <em>all</em> of them. <code>sleep apnea</code> only finds posts that mention both sleep and apnea.</li>
+            <li><strong>Either word</strong> — put capital <code>OR</code> between them. <code>fertility OR TFR</code> finds posts with either word.</li>
+            <li><strong>Exact phrase</strong> — wrap it in quotes. <code>"interest rates"</code> keeps those words together, in that order.</li>
+            <li><strong>Starts with</strong> — add a star at the end. <code>fertil*</code> matches fertility, fertilizer, and similar starts.</li>
+            <li><strong>Leave a word out</strong> — capital <code>NOT</code> after what you want. <code>diet NOT keto</code> drops posts that also say keto.</li>
+            <li><strong>Mix them</strong> — use parentheses. <code>(sleep OR insomnia) NOT mattress</code></li>
+          </ul>
+        </div>
+      </details>
+      <details class="filters">
+        <summary>Filters</summary>
+        <div class="filters-body">
       <div class="row">
         <label>From <input type="date" id="date_from"></label>
         <label>To <input type="date" id="date_to"></label>
         <label class="chk"><input type="checkbox" id="include_undated" checked> Include undated</label>
-        <label class="chk"><input type="checkbox" id="enriched_only"> Enriched only</label>
       </div>
       <div class="row">
         <label class="chk"><input type="checkbox" class="type" value="bookmark" checked> Bookmark</label>
@@ -81,151 +298,29 @@
         <label class="chk"><input type="checkbox" class="type" value="reply" checked> Reply</label>
         <label class="chk"><input type="checkbox" class="type" value="repost" checked> Repost</label>
         <label class="chk"><input type="checkbox" class="type" value="like" checked> Like</label>
-        <label>Category
-          <select id="category"><option value="">All</option></select>
+        <label id="catwrap">Bookmark folders
+          <select id="category" multiple></select>
         </label>
       </div>
       <div class="row">
         <label>Author <input type="text" id="author" placeholder="handle"></label>
-        <label>Hits <input type="range" id="limit" min="10" max="100" step="5" value="25"> <span id="limitn">25</span></label>
+        <label>Hits <input type="range" id="limit" min="10" max="105" step="5" value="25"> <span id="limitn">25</span></label>
         <label>Sort
           <select id="sort">
+            <option value="newest" selected>Newest</option>
             <option value="relevance">Relevance</option>
-            <option value="newest">Newest</option>
             <option value="oldest">Oldest</option>
           </select>
         </label>
       </div>
+        </div>
+      </details>
     </form>
     <p class="stats" id="stats"></p>
     <p class="toast" id="toast"></p>
   </header>
   <main id="results"></main>
-  <script>
-    const $ = (id) => document.getElementById(id);
-    $("limit").addEventListener("input", () => { $("limitn").textContent = $("limit").value; });
-
-    function selectedTypes() {
-      return [...document.querySelectorAll(".type:checked")].map((el) => el.value);
-    }
-
-    function paramsFromForm() {
-      const p = new URLSearchParams();
-      const q = $("q").value.trim();
-      if (q) p.set("q", q);
-      if ($("date_from").value) p.set("date_from", $("date_from").value);
-      if ($("date_to").value) p.set("date_to", $("date_to").value);
-      p.set("include_undated", $("include_undated").checked ? "true" : "false");
-      p.set("enriched_only", $("enriched_only").checked ? "true" : "false");
-      if ($("author").value.trim()) p.set("author", $("author").value.trim());
-      if ($("category").value) p.set("category", $("category").value);
-      p.set("limit", $("limit").value);
-      p.set("sort", $("sort").value);
-      selectedTypes().forEach((t) => p.append("types", t));
-      return p;
-    }
-
-    function flagBits(r) {
-      const bits = [];
-      if (r.is_bookmark) bits.push("bookmark");
-      if (r.is_post) bits.push("post");
-      if (r.is_reply) bits.push("reply");
-      if (r.is_repost) bits.push("repost");
-      if (r.is_like) bits.push("like");
-      return bits.join(" · ");
-    }
-
-    function esc(s) {
-      return String(s ?? "").replace(/[&<>"']/g, (c) => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-      }[c]));
-    }
-
-    async function loadStats() {
-      const st = await (await fetch("/api/stats")).json();
-      $("stats").textContent =
-        `${st.total} in db · ${st.enriched} enriched · ${st.undated} undated · ` +
-        `bookmarks ${st.is_bookmark} · posts ${st.is_post} · replies ${st.is_reply} · ` +
-        `reposts ${st.is_repost} · likes ${st.is_like}`;
-      const sel = $("category");
-      const keep = sel.value;
-      sel.innerHTML = '<option value="">All</option>';
-      (st.categories || []).forEach((c) => {
-        const o = document.createElement("option");
-        o.value = c; o.textContent = c;
-        sel.appendChild(o);
-      });
-      if (keep) sel.value = keep;
-    }
-
-    async function search() {
-      $("toast").textContent = "";
-      const p = paramsFromForm();
-      const data = await (await fetch("/api/search?" + p.toString())).json();
-      const box = $("results");
-      if (!data.rows || !data.rows.length) {
-        box.innerHTML = '<p class="empty">no hits</p>';
-        return;
-      }
-      box.innerHTML = data.rows.map((r) => {
-        const when = (r.created_at || "?").slice(0, 10);
-        const who = r.author_username ? "@" + r.author_username : "@_";
-        const cat = r.bookmark_category ? ` · ${esc(r.bookmark_category)}` : "";
-        const sum = r.summary ? `<div class="summary">${esc(r.summary)}</div>` : "";
-        const kw = r.keywords ? `<div class="kw">${esc(r.keywords)}</div>` : "";
-        const snip = r.snippet ? `<div class="snip">${esc(r.snippet)}</div>` : "";
-        const href = r.url || ("https://x.com/i/web/status/" + r.id);
-        return `<article class="card">
-          <div class="meta">${esc(when)} · ${esc(who)}${cat}
-            <span class="flags"> · ${esc(flagBits(r))}</span></div>
-          ${sum}${kw}${snip}
-          <div><a href="${esc(href)}" target="_blank" rel="noopener">Open on X</a></div>
-        </article>`;
-      }).join("");
-    }
-
-    $("f").addEventListener("submit", (e) => { e.preventDefault(); search(); });
-
-    $("interpret").addEventListener("click", async () => {
-      const sentence = $("q").value.trim();
-      if (!sentence) { $("toast").textContent = "Type a sentence first."; return; }
-      $("interpret").disabled = true;
-      $("toast").textContent = "Interpreting…";
-      try {
-        const res = await fetch("/api/interpret", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sentence })
-        });
-        if (!res.ok) {
-          $("toast").textContent = res.status === 503 ? "Interpret unavailable." : "Interpret failed.";
-          return;
-        }
-        const out = await res.json();
-        if (out.q != null) $("q").value = out.q;
-        if (out.date_from) $("date_from").value = String(out.date_from).slice(0, 10);
-        if (out.date_to) $("date_to").value = String(out.date_to).slice(0, 10);
-        if (typeof out.include_undated === "boolean") $("include_undated").checked = out.include_undated;
-        if (typeof out.enriched_only === "boolean") $("enriched_only").checked = out.enriched_only;
-        if (out.author != null) $("author").value = out.author;
-        if (out.category != null) $("category").value = out.category;
-        if (out.limit) { $("limit").value = out.limit; $("limitn").textContent = out.limit; }
-        if (out.sort) $("sort").value = out.sort;
-        if (Array.isArray(out.types) && out.types.length) {
-          document.querySelectorAll(".type").forEach((el) => {
-            el.checked = out.types.includes(el.value);
-          });
-        }
-        $("toast").textContent = "";
-        await search();
-      } catch (err) {
-        $("toast").textContent = "Interpret failed.";
-      } finally {
-        $("interpret").disabled = false;
-      }
-    });
-
-    loadStats().then(search);
-  </script>
+  </div>
+  <script type="module" src="/app.js"></script>
 </body>
 </html>

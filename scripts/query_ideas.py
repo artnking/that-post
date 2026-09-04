@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
-"""FTS5 search over Ideas on X."""
+"""FTS5 search over That Post."""
 from __future__ import annotations
 
 import argparse
 import sqlite3
 from pathlib import Path
 
-DB = Path.home() / ".hermes" / "ideas-on-x" / "ideas.sqlite"
+SCRIPTS = Path(__file__).resolve().parent
+import sys
+
+sys.path.insert(0, str(SCRIPTS))
+from paths import DB  # noqa: E402
 
 
 def main() -> int:

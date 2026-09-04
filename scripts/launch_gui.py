@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Start Ideas on X on 127.0.0.1:8790. Default: open Chrome. --no-open for autostart."""
+"""Start That Post on 127.0.0.1:8790. Default: open Chrome. --no-open for autostart."""
 from __future__ import annotations
 
 import argparse
@@ -37,17 +37,32 @@ def main() -> int:
     thread = threading.Thread(target=server.run, daemon=True)
     thread.start()
     ok = False
+    import base64
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from gui_server import page_password  # noqa: E402
+
+    token = base64.b64encode(b":" + page_password().encode()).decode()
     for _ in range(50):
         try:
-            with urllib.request.urlopen(URL + "api/stats", timeout=1) as r:
+            req = urllib.request.Request(
+                URL + "api/stats",
+                headers={"Authorization": f"Basic {token}"},
+            )
+            with urllib.request.urlopen(req, timeout=1) as r:
                 if r.status == 200:
                     ok = True
                     break
+        except urllib.error.HTTPError as e:
+            if e.code in (401, 403):
+                time.sleep(0.1)
+                continue
+            time.sleep(0.1)
         except (urllib.error.URLError, TimeoutError):
             time.sleep(0.1)
     if not ok:
         raise SystemExit("server did not become ready on 127.0.0.1:8790")
-    print(f"Ideas on X  {URL}   Ctrl+C to stop")
+    print(f"That Post  {URL}   Ctrl+C to stop")
     if not args.no_open:
         webbrowser.open(URL)
     try:

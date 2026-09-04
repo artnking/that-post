@@ -1,154 +1,219 @@
 ---
-name: ideas-on-x
-description: "Search X bookmarks, posts, replies, reposts, and likes by idea."
-version: 1.0.0
+name: that-post
+description: "Idea search over your X bookmarks, likes, and posts."
+version: 1.3.0
 author: Art King, Hermes Agent
 license: MIT
-platforms: [windows]
+platforms: [linux, macos, windows]
 metadata:
   hermes:
     tags: [x, twitter, bookmarks, search, sqlite, fts5]
     related_skills: []
+  openclaw:
+    requires:
+      bins: [python]
 ---
 
-# Ideas on X
+# That Post
 
-Index Art's X bookmarks, his own posts/replies/reposts, and likes so he can
-find "that post from weeks ago about topic X." X's own folders are a weak
-search tool. This skill pulls those sources, writes a short idea-summary +
-keywords, and stores them in SQLite FTS5. One tweet id = one row; type flags
-can overlap (liked AND bookmarked).
+Idea search over what you bookmarked, liked, or posted.
 
-Do **not** dump this SKILL.md into `PROJECTS.md`. One-line status only.
+Find that post you saved and can’t find on X. Keeps a **private, local** SQLite
+index of bookmarks, likes, posts, replies, and reposts, then summarizes each
+row so you can search by idea or keyword. Sync on the PC; publish a **locked
+snapshot** to Netlify for phone search.
+
+Skill id / folder: `that-post`. Display name: **That Post**.
+One folder holds the skill **and** live data (`data/`, gitignored except `.gitkeep`).
+Public package: this folder **without** `data/ideas.sqlite`; include
+`templates/empty.sqlite` (zero rows). First run creates `data/ideas.sqlite`.
+
+Do **not** ship live `data/ideas.sqlite`, `data/x_oauth.json`, `.env`, or tweets.
+Do **not** use X’s official logo (trademark). The page uses our own mark.
+
+Windows install/publish: `Install_Instructions.md`, `START-HERE.md`, `install.bat`, `publish.bat`.
 
 ## When to Use
 
-- "Find that X bookmark about…"
-- "Search my bookmarks / posts / likes for…"
-- "Open the Ideas on X search page"
-- "Weekly X sync" / "refresh my bookmarks"
-- "Refresh / ingest / enrich Ideas on X"
-- Revive the old `OpenClaw skills/X bookmarks` dumps
+- “Find that X bookmark / like / post about…”
+- “Search my X history by idea”
+- “Open That Post search page”
+- “Sync / refresh my X bookmarks”
+- “Install that-post / That Post on this computer”
+- “Publish That Post to the phone / Netlify”
 
-**Don't use for:** posting on X, general web search, BookBack, the master disk index.
-
-## What you get
-
-Each row: original text, author, **type flags** (bookmark / post / reply /
-repost / like), **bookmark_category** (X folder name when the API returns it),
-**summary paragraph**, **keywords**, optional image notes, optional top-reply
-notes. Query is FTS5 over the text fields — idea language, not just exact tweet
-wording.
+**Don't use for:** posting on X, general web search, scraping other people’s
+timelines, asking anyone for their X password.
 
 ## Prerequisites
 
-- Python 3.11 on this PC (already used by Hermes).
-- Data dir: `%USERPROFILE%\.hermes\ideas-on-x\` (`ideas.sqlite`, `state.json`, `media/`).
-- Seed JSON (already on disk): `~/.hermes/skills/OpenClaw skills/X bookmarks/*.json`
-- **Full live pull** needs the existing X developer app ("XURL access from Hermes")
-  as a **user** login (`bookmark.read tweet.read users.read like.read`), not the portal
-  "Bearer Token" (that is app-only and cannot read bookmarks).
-  Do not paste secrets into chat.
-  1. Fill `~/.hermes/ideas-on-x/x_oauth.json` from `x_oauth.example.json`
-  2. `python scripts/auth_x.py` on the PC — browser approve — writes `X_BEARER_TOKEN`
-     into `~/.hermes/.env` without printing it.
-- Image notes use `vision_analyze`. Reply scrape uses X API if the token allows
-  conversation search; otherwise skip replies and still index the post.
+From this skill directory:
+
+```
+python3 -m pip install -r requirements.txt
+```
+
+(`python` is fine if that is 3.11+.) Windows: `install.bat` skips the Microsoft
+Store `python.exe` stub and can install Python 3.12 via winget.
+
+**Developer app (once, whoever owns the X API app):**
+
+- X developer portal → an app with **user** OAuth 2.0 (not the portal
+  app-only Bearer token).
+- Confidential client.
+- Callback URI **exactly**: `http://127.0.0.1:8080/callback`
+- Scopes: `tweet.read users.read bookmark.read like.read offline.access`
+- Copy `x_oauth.example.json` to `data/x_oauth.json` and fill client id/secret.
+  Never paste those values into chat.
+
+**This machine:**
+
+- A graphical desktop and a browser (Firefox or Chrome) **on this same OS**.
+  SSH-only / headless does not.
+- Data dir: `<this-skill>/data/` unless `THAT_POST_HOME` is set.
+- Enrichment: OpenRouter (`google/gemini-3.5-flash-lite`). Strongly recommended.
+  `$5` credits; a typical first run is well under `$1`. `enrich.bat` later if skipped.
+- Phone copy: a Netlify account. First `publish.bat` asks for a personal
+  access token (typing is invisible — paste once).
+
+## X login (human in the browser)
+
+The agent **cannot** finish login. X shows a web page. A person sitting at
+**this** computer must sign in. Do not ask for their password. Do not offer to
+type it. Do not run `auth_x.py` over SSH without a browser on the same machine.
+
+**What the agent does**
+
+1. Confirm `data/x_oauth.json` exists and is not still `PASTE_CLIENT_ID_HERE`.
+   Do not print the file.
+2. In a terminal on this machine, from the skill directory:
+
+   ```
+   python3 scripts/auth_x.py
+   ```
+
+3. The script prints `Opening X login in your browser…` and usually opens a
+   tab. It waits **3 minutes**. If no window appears, it also prints a long
+   `https://twitter.com/i/oauth2/authorize?...` URL — tell the human to paste
+   that into Firefox/Chrome **inside this same OS** (the VM, not the host, if
+   this is a VM).
+4. Stop and tell the human what to do (script below). Wait for them.
+5. Success: stdout contains `OK — login works` (or `Token saved`) and **does
+   not** contain a token. Failure: `No login code (timed out)` → run the
+   script again; they have 3 minutes after it starts. `X returned error` →
+   they hit Cancel, or the callback URI / scopes on the app are wrong.
+
+**What you tell the human:**
+
+> A browser window is going to ask you to sign in to X. That is X’s real login
+> page, not us collecting a password. Sign in the way you always do. If X
+> asks which permissions to allow, allow them (read bookmarks, likes, and
+> posts). Click **Allow** or **Authorize**. When the page says **That Post is
+> connected**, you can close the tab and tell me you’re done. I will never
+> ask for your password.
+
+If they are already signed into X in that browser, they may only see Allow.
+
+**What this grant is:** a token on **this computer only**, so That Post can
+read *their* bookmarks, likes, and posts. It cannot tweet. They can revoke it
+later on X: Settings → Security and account access → Apps and sessions.
 
 ## How to Run
 
-All commands via `terminal`, cwd anywhere. Use Hermes venv python on this PC:
+From this skill directory:
 
 ```
-& "$env:LOCALAPPDATA\hermes\hermes-agent\venv\Scripts\python.exe"
+python3 scripts/auth_x.py
+python3 scripts/ingest_bookmarks.py --all
+python3 scripts/ingest_bookmarks.py --seed --seed-dir /path/to/json/dumps
+python3 scripts/enrich_bookmarks.py --limit 10
+python3 scripts/query_ideas.py "your idea here"
+python3 scripts/sync_x.py
+python3 scripts/launch_gui.py --no-open
+python3 scripts/publish.py
 ```
 
-Git-bash:
+Windows: `install.bat` then optional `enrich.bat` then `publish.bat`. Existing
+`data/ideas.sqlite` skips X login and download.
 
-```
-"$LOCALAPPDATA/hermes/hermes-agent/venv/Scripts/python.exe"
-```
+Local search: http://127.0.0.1:8790/ (loopback only, HTTP basic **1234**).
+The page loads a **snapshot** of the SQLite index into the browser
+(sqlite-wasm). Reload after a sync. Default sort is **Newest**. Query Help
+explains AND / OR / quotes / `*` / NOT — no FTS jargon in the UI.
 
-Scripts live in this skill's `scripts/`.
+Phone: `publish.bat` encrypts a stripped copy (`raw_json` removed) and
+uploads with the Netlify API. Same URL on later runs. Publish PIN is 4 digits ≠ 1234.
 
-## Quick Reference
+Schedule: the user’s agent cron can run `python3 scripts/sync_x.py`. Do not
+assume a particular autostart wrapper.
 
-```
-python scripts/ingest_bookmarks.py --seed
-python scripts/ingest_bookmarks.py --live
-python scripts/ingest_bookmarks.py --posts --folders
-python scripts/ingest_bookmarks.py --likes
-python scripts/ingest_bookmarks.py --all
-python scripts/enrich_bookmarks.py --limit 10
-python scripts/query_ideas.py "your idea here"
-python scripts/sync_x.py
-python scripts/launch_gui.py
-```
+If a later sync prints `AUTH_FAIL`: run `auth_x.py` again; the same human
+clicks Allow.
 
-http://127.0.0.1:8790/ — localhost only.
+## Search page
 
-Weekly sync: Hermes cron `Ideas on X weekly sync`, Wednesday 16:00 PDT.
-`scripts/sync_x.py` refreshes the X token (no browser), ingests bookmarks/posts/replies/reposts/likes/folders, enriches new rows, Telegram even on +0.
-If token refresh fails: say **ready** and click Allow.
-
-Autostart: scheduled task `\IdeasOnX_Web` (Art logon +30s), same pattern as BookBack_Web / BlueBubbles.
-Launcher: `%LOCALAPPDATA%\IdeasOnX-autostart\start-ideas-on-x.vbs`
-Log: `~/.hermes/ideas-on-x/logs/web.log`
+- Dark UI. Our own rounded-bar X mark — **not** the official X logo.
+- Photo (`gui/assets/bg-phone.jpg`): **PC** — small, right side, not under
+  text. **Phone** — small, beside the “That Post” title, top ~¼ of the screen.
+- Netlify only gets a new look after those files are on **that**
+  machine and `publish.bat` runs again. The live URL is a copy.
 
 ## Procedure
 
-1. **Ingest IDs + text** (`ingest_bookmarks.py --seed` and/or `--live` / `--posts`
-   / `--likes` / `--folders` / `--all`).
-   Done when `SELECT COUNT(*) FROM bookmarks` is > 0 and `state.json` has `last_ingest`.
-2. **Enrich** (`enrich_bookmarks.py`). For each unenriched row: media → optional
-   vision note; top replies if available; one summary paragraph + keyword list
-   via a cheap OpenRouter chat model (`OPENROUTER_API_KEY`). Resume-safe.
-   Long runs: Telegram status every 15 minutes.
-   Done when `enriched_at` is set on the batch you asked for.
-3. **Query** (`query_ideas.py "<idea>"`). Return id, date, author, url, summary,
-   and a snippet. Do not dump full tweet JSON into chat.
-4. **Update `PROJECTS.md`** one row only: Status + Now.
+1. **Auth** — section “X login” above. Done when `auth_x.py` prints OK and
+   does not print token values.
+2. **Ingest** — `ingest_bookmarks.py --all`. Optional `--seed --seed-dir`.
+   Done when `python3 scripts/query_ideas.py` with no args shows `rows > 0`.
+3. **Enrich** (strongly recommended) — OpenRouter `google/gemini-3.5-flash-lite`.
+   `enrich_bookmarks.py` or Windows `enrich.bat`. Resume-safe. Can run later.
+4. **Search** — `query_ideas.py "<idea>"` or http://127.0.0.1:8790/
+   Return id, date, author, url, summary, snippet. Do not dump `raw_json` or
+   tokens into chat.
+5. **Publish** — `publish.bat` / `scripts/publish.py`. Done when it prints a
+   `https://….netlify.app` URL and the phone can unlock with the **4-digit
+   Publish PIN** (not 1234).
 
-## Database (SQLite FTS5)
+## Database
 
-File: `~/.hermes/ideas-on-x/ideas.sqlite`
+Live: `data/ideas.sqlite` (gitignored). Public template: `templates/empty.sqlite`.
 
-`bookmarks` (one tweet id per row): id, author_id, author_username, author_name,
-created_at, folder, bookmark_category, is_bookmark, is_post, is_reply, is_repost,
-is_like, text, url, summary, keywords, image_notes, reply_notes, raw_json,
-ingested_at, enriched_at.
-
-Type flags are 0/1 and may overlap. `bookmark_category` is the X folder name
-(also copied into `folder` so FTS can hit it).
+`bookmarks`: one tweet id per row — text, url, summary, keywords, type flags
+(`is_bookmark` / `is_post` / `is_reply` / `is_repost` / `is_like` may overlap),
+`bookmark_category`, `raw_json`, timestamps.
 
 `bookmarks_fts`: FTS5 on text, summary, keywords, image_notes, reply_notes,
 author_username, folder.
 
 ## Pitfalls
 
-- Weekly sync needs the PC on (Art auto-logs on). Token refresh uses `X_REFRESH_TOKEN`; if X revokes it, AUTH_FAIL until `auth_x.py`.
-- Port 8790 in use: stop the previous `launch_gui.py` (Ctrl+C) before starting another.
-- FTS AND-is-default: `fertility TFR` requires both terms — use `OR`.
-- X folder listing exists (`GET .../bookmarks/folders`) but each folder only
-  returns ~20 tweet **ids**, no pagination. Category will be incomplete; do not
-  wait on folder-perfect data. Search is the product.
-- Likes need `like.read` on the user token. If `liked_tweets` returns 403, run
-  `auth_x.py` again and approve. The likes endpoint is a recent slice, not a
-  lifetime archive (use an X data download later if Art wants older likes).
-- Own timeline (`/users/:id/tweets`) includes replies and retweets; classify
-  with `referenced_tweets` + `in_reply_to_user_id`.
-- Live bookmark endpoint may cap around the most recent ~800. Older than that may
-  never appear via API; keep seed JSON and any exports.
-- `bookmarks_002.json` and `bookmarks_004.json` are duplicates. Ingest is idempotent
-  on tweet id.
-- `xurl` CLI skill is Linux/Mac. This skill uses Python + bearer token on Windows.
-- Do not put `~/.xurl` or tokens in chat.
-- Enrichment costs OpenRouter tokens. Default `--limit` for a first pass.
-- Replies on old posts often fail on the recent-search API (7-day window). Skip
-  rather than hang.
+- Browser and `auth_x.py` must share localhost.
+- Live bookmarks API: newest ~800. Older saves need a JSON dump (`--seed-dir`).
+- Likes are a recent slice, not a lifetime archive.
+- Search AND-is-default: `fertility TFR` requires both terms — use `OR`.
+- X folder listing is incomplete (~20 ids per folder). Search still works.
+- `like.read` 403 → `auth_x.py` again and Allow.
+- Replies on old posts often fail (recent-search 7-day window). Skip.
+- Port 8790 in use: stop the other `launch_gui.py` first.
+- Port 8080 in use: stop whatever is bound there before `auth_x.py`.
+- Enrichment costs LLM credits. Start with `--limit 10`.
+- X API HTTP 402 “credits depleted”: keep saved rows; not a failed install.
+  SuperGrok does not fund Developer API credits.
+- Windows Store `python.exe` is a stub (“install from Microsoft Store”).
+  `install.bat` ignores it.
+- `getpass` hides pasted Netlify tokens. Paste **once**, Enter. A double paste
+  is a bad token (HTTP 401). Delete `NETLIFY_AUTH_TOKEN` from `data/.env` and retry.
+- New Netlify sites start **private**. Phone may require dashboard → Visitor
+  access → Make public **once**. Later publishes to the same site stay public.
+- Do not print tokens, client secrets, or full tweet JSON in chat.
+- Do not zip `data/ideas.sqlite` for a public package.
+- Phone/Netlify will look unchanged until new `gui/` files are on the machine
+  that runs `publish.bat`. iPhone Chrome: close the tab, then reopen the URL.
 
 ## Verification
 
-- `query_ideas.py "test"` returns rows without error.
-- Duplicate seed files do not double-count (`COUNT(DISTINCT id)` = `COUNT(*)`).
-- After enrich, a topic query hits **summary/keywords**, not only the raw tweet text.
+- `python3 scripts/query_ideas.py "test"` returns without error (hits optional).
+- `COUNT(DISTINCT id)` = `COUNT(*)` after ingest.
+- After enrich, an idea query can hit **summary/keywords**, not only raw text.
+- Human can open http://127.0.0.1:8790/ and recognize their own posts.
+- After publish: phone unlocks with the 4-digit Publish PIN and search works.
+  Photo sits beside the title on a phone-width screen.

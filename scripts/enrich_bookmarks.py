@@ -17,7 +17,8 @@ import sys
 
 SCRIPTS = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPTS))
-from ingest_bookmarks import DB, load_env  # noqa: E402
+from ingest_bookmarks import load_env  # noqa: E402
+from paths import DB  # noqa: E402
 
 SYSTEM = """You index X (Twitter) bookmarks for later search-by-idea.
 Given one post (and optional notes), write JSON only:
@@ -39,7 +40,7 @@ def chat_openrouter(model: str, key: str, user: str) -> dict:
             {"role": "system", "content": SYSTEM},
             {"role": "user", "content": user},
         ],
-        extra_headers={"HTTP-Referer": "https://hermes-agent.local/ideas-on-x", "X-Title": "Ideas on X"},
+        extra_headers={"HTTP-Referer": "https://localhost/that-post", "X-Title": "That Post"},
     )
     text = (resp.choices[0].message.content or "").strip()
     text = text.removeprefix("```json").removeprefix("```").removesuffix("```").strip()

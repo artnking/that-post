@@ -188,11 +188,44 @@ def test_author_will_matches_handle(db):
     assert [r["id"] for r in rows] == ["1"]
 
 
+def test_category_list_filters_bookmarks(db):
+    import search_ideas
+
+    rows = search_ideas.search(
+        q="", include_undated=True, types=["bookmark"], category=["Fertility"]
+    )
+    assert [r["id"] for r in rows] == ["1"]
+
+
 def test_limit_2_returns_two(db):
     import search_ideas
 
     rows = search_ideas.search(q="", include_undated=True, limit=2, sort="oldest")
     assert len(rows) == 2
+
+
+def test_limit_0_returns_all(db):
+    import search_ideas
+
+    rows = search_ideas.search(q="", include_undated=True, limit=0)
+    assert len(rows) == 3
+
+
+def test_offset_skips_first(db):
+    import search_ideas
+
+    first = search_ideas.search(q="", include_undated=True, limit=1, offset=0, sort="oldest")
+    second = search_ideas.search(q="", include_undated=True, limit=1, offset=1, sort="oldest")
+    assert first[0]["id"] != second[0]["id"]
+
+
+def test_search_page_total(db):
+    import search_ideas
+
+    page = search_ideas.search_page(q="", include_undated=True, limit=1, sort="oldest")
+    assert page["total"] == 3
+    assert page["hits"] == 1
+    assert page["offset"] == 0
 
 
 def test_bad_match_syntax_falls_back_to_like(db):

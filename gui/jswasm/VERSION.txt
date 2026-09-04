@@ -1,0 +1,8 @@
+@sqlite.org/sqlite-wasm 3.53.0-build1
+Apache-2.0
+https://www.npmjs.com/package/@sqlite.org/sqlite-wasm
+
+Files:
+  index.mjs
+  sqlite3.wasm
+  sqlite3-opfs-async-proxy.js  (bundled with the package; OPFS is disabled in app.js)

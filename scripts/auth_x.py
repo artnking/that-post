@@ -1,19 +1,18 @@
 #!/usr/bin/env python3
-"""One-time X OAuth 2.0 login for Ideas on X (Windows).
+"""One-time X OAuth 2.0 login for That Post.
 
-Never prints tokens. Writes X_BEARER_TOKEN to ~/.hermes/.env.
+Never prints tokens. Writes X_BEARER_TOKEN to the data-dir .env
+(and ~/.hermes/.env if that folder already exists).
 
-Setup (you do this in the browser, not in chat):
+Setup (in the X developer portal, not in chat):
 1. https://developer.x.com/en/portal/dashboard
-2. App: XURL access from Hermes
-3. User authentication: OAuth 2.0 ON
-4. Callback / redirect URI exactly: http://127.0.0.1:8080/callback
-5. App permissions: Read. Scopes: tweet.read users.read bookmark.read offline.access
-6. Copy Client ID and Client Secret into:
-     %USERPROFILE%\\.hermes\\ideas-on-x\\x_oauth.json
-   using x_oauth.example.json as the shape.
+2. Your app, User authentication: OAuth 2.0 ON
+3. Callback / redirect URI exactly: http://127.0.0.1:8080/callback
+4. App permissions: Read. Scopes: tweet.read users.read bookmark.read like.read offline.access
+5. Copy Client ID and Client Secret into x_oauth.json under the data dir
+   (default <skill>/data/x_oauth.json) using x_oauth.example.json as the shape.
 
-Then run this script on the PC. A browser window opens. Approve. Done.
+Then run this script on the same machine. A browser window opens. Approve. Done.
 """
 from __future__ import annotations
 
@@ -21,18 +20,19 @@ import base64
 import hashlib
 import http.server
 import json
-import os
 import secrets
+import sys
 import threading
 import urllib.parse
 import urllib.request
 import webbrowser
 from pathlib import Path
 
-HOME = Path.home()
-DATA = HOME / ".hermes" / "ideas-on-x"
-OAUTH_FILE = DATA / "x_oauth.json"
-ENV_FILE = HOME / ".hermes" / ".env"
+SCRIPTS = Path(__file__).resolve().parent
+sys.path.insert(0, str(SCRIPTS))
+from paths import DATA, DATA_ENV, HERMES_ENV, OAUTH_FILE, upsert_env  # noqa: E402
+
+ENV_FILE = HERMES_ENV if HERMES_ENV.parent.exists() else DATA_ENV
 REDIRECT = "http://127.0.0.1:8080/callback"
 SCOPES = "tweet.read users.read bookmark.read like.read offline.access"
 AUTHORIZE = "https://twitter.com/i/oauth2/authorize"
@@ -48,7 +48,7 @@ def load_client() -> tuple[str, str]:
         raise SystemExit(
             f"Missing {OAUTH_FILE}\n"
             "Create it from x_oauth.example.json with client_id and client_secret.\n"
-            "Do not put those values in Telegram."
+            "Do not paste those values into chat."
         )
     data = json.loads(OAUTH_FILE.read_text(encoding="utf-8"))
     cid = (data.get("client_id") or "").strip()
@@ -56,25 +56,6 @@ def load_client() -> tuple[str, str]:
     if not cid or not secret or "PASTE" in cid or "PASTE" in secret:
         raise SystemExit(f"Fill client_id and client_secret in {OAUTH_FILE}")
     return cid, secret
-
-
-def upsert_env(key: str, value: str) -> None:
-    lines: list[str] = []
-    if ENV_FILE.exists():
-        lines = ENV_FILE.read_text(encoding="utf-8", errors="replace").splitlines()
-    found = False
-    out = []
-    for line in lines:
-        if line.startswith(f"{key}=") or line.startswith(f"#{key}="):
-            out.append(f"{key}={value}")
-            found = True
-        else:
-            out.append(line)
-    if not found:
-        if out and out[-1].strip():
-            out.append("")
-        out.append(f"{key}={value}")
-    ENV_FILE.write_text("\n".join(out) + "\n", encoding="utf-8")
 
 
 def main() -> int:
@@ -108,7 +89,9 @@ def main() -> int:
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.end_headers()
-            self.wfile.write(b"<html><body><p>Ideas on X is connected. You can close this tab.</p></body></html>")
+            self.wfile.write(
+                b"<html><body><p>That Post is connected. You can close this tab.</p></body></html>"
+            )
 
     httpd = http.server.HTTPServer(("127.0.0.1", 8080), Handler)
     thread = threading.Thread(target=httpd.handle_request, daemon=True)
@@ -125,7 +108,7 @@ def main() -> int:
     }
     url = AUTHORIZE + "?" + urllib.parse.urlencode(params)
     print("Opening X login in your browser…")
-    print("If it does not open, paste this into Chrome (on this PC):")
+    print("If it does not open, paste this into a browser on this machine:")
     print(url)
     webbrowser.open(url)
     thread.join(timeout=180)
@@ -167,10 +150,9 @@ def main() -> int:
     upsert_env("X_BEARER_TOKEN", access)
     if refresh:
         upsert_env("X_REFRESH_TOKEN", refresh)
-    print(f"OK — saved X_BEARER_TOKEN to {ENV_FILE} (length {len(access)}, value not printed)")
+    print(f"OK — saved X_BEARER_TOKEN to {DATA_ENV} (length {len(access)}, value not printed)")
     if refresh:
         print(f"OK — saved X_REFRESH_TOKEN (length {len(refresh)})")
-    # smoke test without printing profile names if we can
     try:
         req2 = urllib.request.Request(
             "https://api.twitter.com/2/users/me",

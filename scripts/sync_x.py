@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Weekly Ideas on X sync: refresh token, ingest live sources, enrich new rows.
+"""Weekly That Post sync: refresh token, ingest live sources, enrich new rows.
 
 Never prints tokens or tweet text.
 """
@@ -21,6 +21,7 @@ from ingest_bookmarks import (  # noqa: E402
     ingest_live,
     ingest_posts,
     write_state,
+    XCreditsDepleted,
 )
 from refresh_x_token import refresh  # noqa: E402
 
@@ -63,6 +64,9 @@ def main() -> int:
         ingest_likes(con)
         ingest_folders(con)
         con.commit()
+    except XCreditsDepleted:
+        con.commit()
+        print("sync PARTIAL — X API credits ran out; kept rows already saved")
     except SystemExit as e:
         print("sync FAIL")
         print(str(e)[:300])

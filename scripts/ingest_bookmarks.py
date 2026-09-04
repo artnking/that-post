@@ -16,13 +16,10 @@ import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
+import sys
 
-HOME = Path.home()
-DATA = HOME / ".hermes" / "ideas-on-x"
-DB = DATA / "ideas.sqlite"
-STATE = DATA / "state.json"
-SEED_DIR = HOME / ".hermes" / "skills" / "OpenClaw skills" / "X bookmarks"
-ENV = HOME / ".hermes" / ".env"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from paths import DATA, DB, SEED_DIR_DEFAULT, STATE, load_env  # noqa: E402
 
 TWEET_FIELDS = (
     "created_at,author_id,public_metrics,conversation_id,attachments,"
@@ -31,19 +28,6 @@ TWEET_FIELDS = (
 EXPANSIONS = "author_id,attachments.media_keys,referenced_tweets.id"
 USER_FIELDS = "username,name"
 MEDIA_FIELDS = "url,preview_image_url,type,alt_text"
-
-
-def load_env() -> dict[str, str]:
-    out: dict[str, str] = {}
-    if not ENV.exists():
-        return out
-    for line in ENV.read_text(encoding="utf-8", errors="replace").splitlines():
-        s = line.strip()
-        if not s or s.startswith("#") or "=" not in s:
-            continue
-        k, v = s.split("=", 1)
-        out[k.strip()] = v.strip().strip('"').strip("'")
-    return out
 
 
 SCHEMA = """
@@ -225,12 +209,13 @@ def ingest_payload(
     return n
 
 
-def ingest_seed(con: sqlite3.Connection) -> int:
+def ingest_seed(con: sqlite3.Connection, seed_dir: Path | None = None) -> int:
     total = 0
-    if not SEED_DIR.is_dir():
-        print(f"no seed dir {SEED_DIR}")
+    seed_dir = Path(seed_dir) if seed_dir else SEED_DIR_DEFAULT
+    if not seed_dir.is_dir():
+        print(f"no seed dir {seed_dir} (pass --seed-dir or use --live)")
         return 0
-    for path in sorted(SEED_DIR.glob("*.json")):
+    for path in sorted(seed_dir.glob("*.json")):
         payload = json.loads(path.read_text(encoding="utf-8"))
         n = ingest_payload(con, payload, flags={"is_bookmark": 1})
         print(f"seed {path.name}: {n} rows")
@@ -242,7 +227,7 @@ def auth_pair() -> tuple[str, str]:
     env = load_env()
     token = env.get("X_BEARER_TOKEN") or os.environ.get("X_BEARER_TOKEN")
     if not token:
-        raise SystemExit("X_BEARER_TOKEN missing in ~/.hermes/.env — do not paste it in chat")
+        raise SystemExit("X_BEARER_TOKEN missing in data/.env — do not paste it in chat")
     user_id = env.get("X_USER_ID") or os.environ.get("X_USER_ID")
     if not user_id:
         me = x_get(token, "/users/me", {})
@@ -250,6 +235,10 @@ def auth_pair() -> tuple[str, str]:
         if not user_id:
             raise SystemExit("X_USER_ID missing and /users/me failed")
     return token, user_id
+
+
+class XCreditsDepleted(Exception):
+    """X pay-per-use credits ran out. Keep rows already committed."""
 
 
 def x_get(token: str, path: str, params: dict[str, str], timeout: int = 60) -> dict:
@@ -264,6 +253,10 @@ def x_get(token: str, path: str, params: dict[str, str], timeout: int = 60) -> d
                 return json.loads(r.read().decode())
         except urllib.error.HTTPError as e:
             last_err = e.read().decode(errors="replace")[:400]
+            if e.code == 402:
+                print("X API credits ran out. Keeping everything already saved.")
+                print("Search still works. Folder labels and extra pages can wait.")
+                raise XCreditsDepleted(path) from None
             if e.code == 429:
                 wait = 20 * (attempt + 1)
                 print(f"rate limited {path} — sleep {wait}s")
@@ -437,6 +430,7 @@ def print_counts(con: sqlite3.Connection) -> None:
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--seed", action="store_true")
+    p.add_argument("--seed-dir", type=Path, default=None, help="directory of X API JSON dumps")
     p.add_argument("--live", action="store_true", help="live bookmarks")
     p.add_argument("--posts", action="store_true", help="own posts, replies, reposts")
     p.add_argument("--likes", action="store_true")
@@ -448,21 +442,24 @@ def main() -> int:
     if not any([args.seed, args.live, args.posts, args.likes, args.folders]):
         args.seed = True
     con = connect()
-    if args.seed:
-        ingest_seed(con)
-    if args.live:
-        ingest_live(con)
-    if args.posts:
-        ingest_posts(con)
-    if args.likes:
-        ingest_likes(con)
-    if args.folders:
-        ingest_folders(con)
+    try:
+        if args.seed:
+            ingest_seed(con, args.seed_dir)
+        if args.live:
+            ingest_live(con)
+        if args.posts:
+            ingest_posts(con)
+        if args.likes:
+            ingest_likes(con)
+        if args.folders:
+            ingest_folders(con)
+    except XCreditsDepleted:
+        print("Stopped calling X. The index is still usable.")
     con.commit()
     print_counts(con)
     n = con.execute("SELECT COUNT(*) FROM bookmarks").fetchone()[0]
     write_state(last_ingest=datetime.now(timezone.utc).isoformat(timespec="seconds"), rows=n)
-    return 0
+    return 0 if n else 1
 
 
 if __name__ == "__main__":

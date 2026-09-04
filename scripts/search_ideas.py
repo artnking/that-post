@@ -1,12 +1,18 @@
 #!/usr/bin/env python3
-"""Parameterized FTS5 + filter search over Ideas on X. Never interpolates SQL."""
+"""Parameterized FTS5 + filter search over That Post. Never interpolates SQL."""
 from __future__ import annotations
 
 import sqlite3
 from pathlib import Path
 from typing import Any, Iterable
 
-DB = Path.home() / ".hermes" / "ideas-on-x" / "ideas.sqlite"
+SCRIPTS = Path(__file__).resolve().parent
+import sys
+
+sys.path.insert(0, str(SCRIPTS))
+from paths import DB as DEFAULT_DB  # noqa: E402
+
+DB = DEFAULT_DB
 
 FIELDS = (
     "id",
@@ -46,11 +52,22 @@ def connect(db: Path | None = None) -> sqlite3.Connection:
 
 
 def _clamp_limit(limit: int) -> int:
+    """0 = all rows. Otherwise page size 1–100."""
     try:
         n = int(limit)
     except (TypeError, ValueError):
         n = 25
+    if n <= 0:
+        return 0
     return max(1, min(100, n))
+
+
+def _clamp_offset(offset: int) -> int:
+    try:
+        n = int(offset)
+    except (TypeError, ValueError):
+        n = 0
+    return max(0, n)
 
 
 def _type_clause(types: Iterable[str] | None) -> tuple[str, list]:
@@ -63,6 +80,51 @@ def _type_clause(types: Iterable[str] | None) -> tuple[str, list]:
         return "", []
     parts = [f"b.{TYPE_COL[t]} = 1" for t in wanted]
     return " AND (" + " OR ".join(parts) + ") ", []
+
+
+def _norm_categories(category: str | Iterable[str] | None) -> list[str]:
+    if category is None or category == "":
+        return []
+    if isinstance(category, str):
+        s = category.strip()
+        return [s] if s else []
+    return [str(c).strip() for c in category if str(c).strip()]
+
+
+def _type_and_category_clause(
+    types: Iterable[str] | None,
+    categories: list[str],
+) -> tuple[str, dict]:
+    if types is None:
+        wanted = list(TYPE_FLAGS)
+    else:
+        wanted = [t for t in types if t in TYPE_COL]
+        if not wanted:
+            return " AND 0 ", {}
+    use_cats = "bookmark" in wanted and bool(categories)
+    if set(wanted) >= set(TYPE_FLAGS) and not use_cats:
+        return "", {}
+    parts: list[str] = []
+    params: dict[str, Any] = {}
+    if "bookmark" in wanted:
+        if use_cats:
+            ph = []
+            for i, c in enumerate(categories):
+                k = f"cat_{i}"
+                params[k] = c
+                ph.append(f":{k}")
+            parts.append(
+                "(b.is_bookmark = 1 AND b.bookmark_category IN (" + ", ".join(ph) + "))"
+            )
+        else:
+            parts.append("b.is_bookmark = 1")
+    for t in wanted:
+        if t == "bookmark":
+            continue
+        parts.append(f"b.{TYPE_COL[t]} = 1")
+    if not parts:
+        return " AND 0 ", {}
+    return " AND (" + " OR ".join(parts) + ") ", params
 
 
 def _date_clause(date_from: str | None, date_to: str | None, include_undated: bool) -> tuple[str, dict]:
@@ -110,71 +172,106 @@ def search(
     include_undated: bool = True,
     enriched_only: bool = False,
     author: str = "",
-    category: str = "",
+    category: str | Iterable[str] | None = None,
     types: Iterable[str] | None = None,
     limit: int = 25,
+    offset: int = 0,
     sort: str = "relevance",
     db: Path | None = None,
 ) -> list[dict]:
+    return search_page(
+        q=q,
+        date_from=date_from,
+        date_to=date_to,
+        include_undated=include_undated,
+        enriched_only=enriched_only,
+        author=author,
+        category=category,
+        types=types,
+        limit=limit,
+        offset=offset,
+        sort=sort,
+        db=db,
+    )["rows"]
+
+
+def search_page(
+    q: str = "",
+    date_from: str | None = None,
+    date_to: str | None = None,
+    include_undated: bool = True,
+    enriched_only: bool = False,
+    author: str = "",
+    category: str | Iterable[str] | None = None,
+    types: Iterable[str] | None = None,
+    limit: int = 25,
+    offset: int = 0,
+    sort: str = "relevance",
+    db: Path | None = None,
+) -> dict[str, Any]:
     limit = _clamp_limit(limit)
+    offset = _clamp_offset(offset)
     q = (q or "").strip()
     author = (author or "").strip()
-    category = (category or "").strip()
-    type_sql, _ = _type_clause(types)
+    cats = _norm_categories(category)
+    type_sql, type_params = _type_and_category_clause(types, cats)
     date_sql, date_params = _date_clause(date_from, date_to, include_undated)
     extra = ""
     params: dict[str, Any] = dict(date_params)
-    params["limit"] = limit
+    params.update(type_params)
+    params["limit"] = -1 if limit == 0 else limit
+    params["offset"] = offset
     if author:
         extra += " AND b.author_username LIKE :author_like "
         params["author_like"] = f"%{author}%"
-    if category:
-        extra += " AND b.bookmark_category = :category "
-        params["category"] = category
     if enriched_only:
         extra += " AND b.enriched_at IS NOT NULL AND b.enriched_at != '' "
     cols = ", ".join(f"b.{c}" for c in FIELDS)
+    page_sql = f"{_order(sort, bool(q))} LIMIT :limit OFFSET :offset"
     con = connect(db)
     try:
         if q:
-            sql = f"""
-            SELECT {cols}
+            from_where = f"""
             FROM bookmarks_fts f
             JOIN bookmarks b ON b.rowid = f.rowid
             WHERE bookmarks_fts MATCH :q
             {date_sql} {extra} {type_sql}
-            {_order(sort, True)}
-            LIMIT :limit
             """
             params["q"] = q
             try:
-                rows = list(con.execute(sql, params))
+                total = con.execute(f"SELECT COUNT(*) {from_where}", params).fetchone()[0]
+                rows = list(con.execute(f"SELECT {cols} {from_where} {page_sql}", params))
             except sqlite3.OperationalError:
                 like = f"%{q}%"
                 params.pop("q", None)
                 params["like"] = like
-                sql = f"""
-                SELECT {cols}
+                from_where = f"""
                 FROM bookmarks b
                 WHERE (b.text LIKE :like OR IFNULL(b.summary,'') LIKE :like OR IFNULL(b.keywords,'') LIKE :like)
                 {date_sql} {extra} {type_sql}
-                {_order(sort, False)}
-                LIMIT :limit
                 """
-                rows = list(con.execute(sql, params))
+                page_sql = f"{_order(sort, False)} LIMIT :limit OFFSET :offset"
+                total = con.execute(f"SELECT COUNT(*) {from_where}", params).fetchone()[0]
+                rows = list(con.execute(f"SELECT {cols} {from_where} {page_sql}", params))
         else:
-            sql = f"""
-            SELECT {cols}
+            from_where = f"""
             FROM bookmarks b
             WHERE 1=1
             {date_sql} {extra} {type_sql}
-            {_order(sort, False)}
-            LIMIT :limit
             """
-            rows = list(con.execute(sql, params))
+            page_sql = f"{_order(sort, False)} LIMIT :limit OFFSET :offset"
+            total = con.execute(f"SELECT COUNT(*) {from_where}", params).fetchone()[0]
+            rows = list(con.execute(f"SELECT {cols} {from_where} {page_sql}", params))
     finally:
         con.close()
-    return [_row(r) for r in rows]
+    out_rows = [_row(r) for r in rows]
+    return {
+        "rows": out_rows,
+        "hits": len(out_rows),
+        "total": int(total),
+        "limit": limit,
+        "offset": offset,
+    }
 
 
 def stats(db: Path | None = None) -> dict:

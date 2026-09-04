@@ -1,0 +1,5 @@
+Live bookmarks, tokens, and logs belong here on a working install.
+This directory is gitignored except .gitkeep.
+
+A public zip of this skill should include templates/empty.sqlite (zero rows)
+and must not include data/ideas.sqlite.
