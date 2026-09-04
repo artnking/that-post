@@ -1,6 +1,6 @@
 # That Post — roadmap
 
-Updated 2026-09-04. Display name **That Post** (skill id `that-post`). Version **1.3.2**.
+Updated 2026-09-04. Display name **That Post** (skill id `that-post`). Version **1.4.0** (final).
 
 Install is **two parts**. They are different products:
 
@@ -33,12 +33,15 @@ Public zip must not include `data/ideas.sqlite`. Use `templates/empty.sqlite`.
 - Search UI: http://127.0.0.1:8790/ (loopback, HTTP basic PIN `1234`)
 - Search runs **in the browser** (sqlite-wasm) against a snapshot of the DB.
   Reload the page after a sync to see new rows. Default sort: **Newest**.
-- UI: dark page; our mark (not official X logo). Photo: PC right aside;
-  phone small beside title, top ~¼.
+- UI: Warm Editorial look (floating search band, sticky Refine rail, serif
+  summaries); our mark (not official X logo). Photo: PC right aside / desktop
+  card 960px+ only; phone small beside title, top ~¼, single copy.
+- Narrow screens (≤860px): Refine starts collapsed behind a tappable Refine
+  toggle; tap to show, tap to hide. Wide screens unchanged.
 - Bookmark folders: picking a folder narrows to bookmarks only (other type
   boxes auto-uncheck). `(No folder)` matches uncategorized bookmarks.
-- Sketches (not shipped): `sketches/004-warm-editorial-v3` — approved Warm
-  Editorial look (floating search band + Refine rail). Ported to `gui/` in 1.3.2.
+- Sketches (not shipped): `sketches/004-warm-editorial-v3` mirrors the live
+  page for preview. Phone page verified on Netlify.
 - Weekly Hermes cron: **paused** (job `4808c4e2b14c`)
 - Autostart: `\IdeasOnX_Web` → `launch_gui.py --no-open`
 

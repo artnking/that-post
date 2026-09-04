@@ -1,7 +1,7 @@
 ---
 name: that-post
 description: "Idea search over your X bookmarks, likes, and posts."
-version: 1.3.2
+version: 1.4.0
 author: Art King, Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
