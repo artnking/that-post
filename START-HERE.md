@@ -58,7 +58,7 @@ iPhone Chrome: close the tab, then reopen the URL.
 ## Later updates (H)
 
 ```
-.venv\Scripts\python scripts\sync_x.py
+sync.bat  (runs scripts\sync_x.py)
 enrich.bat
 publish.bat
 ```

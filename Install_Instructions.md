@@ -137,7 +137,7 @@ The public page is a **copy**. After you update the database (**H**), run `publi
 From this folder, after the first install:
 
 ```
-.venv\Scripts\python scripts\sync_x.py
+sync.bat  (runs scripts\sync_x.py)
 enrich.bat
 publish.bat
 ```
