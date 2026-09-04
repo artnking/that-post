@@ -146,6 +146,7 @@
     padding: 8px 10px; border: 1px solid var(--line); border-radius: 9px; background: #fff; color: var(--ink);
   }
   .filters input[type="range"] { width: 100%; accent-color: var(--accent); }
+  .refine-toggle { display: none; }
   #catwrap { display: none; flex-direction: column; gap: 4px; font-size: 13px; align-items: stretch; }
   #category { min-width: 160px; min-height: 5.5em; }
   .pile { display: flex; flex-direction: column; gap: 14px; }
@@ -198,6 +199,7 @@
     .layout { grid-template-columns: 1fr; }
     .filters { position: static; }
     .refine-toggle { display: inline-block; }
+    .refine-title { display: none; }
     .filters[data-collapsed="1"] .refine-body { display: none; }
     .searchband { margin-top: 0; padding-top: 14px; }
   }
@@ -262,7 +264,7 @@
 
   <div class="layout">
     <aside class="filters" id="refine" aria-label="Filters">
-      <h2><a href="#" class="refine-toggle" id="refine-toggle" style="display:none;color:var(--accent);text-decoration:none;font-weight:700;">Refine ▾</a><span class="refine-title">Refine</span></h2>
+      <h2><a href="#" class="refine-toggle" id="refine-toggle" style="color:var(--accent);text-decoration:none;font-weight:700;">Refine ▾</a><span class="refine-title">Refine</span></h2>
       <div class="refine-body" id="refine-body">
       <section>
         <label><input type="checkbox" class="type" value="bookmark" checked> Bookmarks</label>
