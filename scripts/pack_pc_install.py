@@ -16,6 +16,7 @@ SKIP_DIR_NAMES = {
     "data",
     "dist",
     "publish",
+    "sketches",
 }
 SKIP_FILE_NAMES = {
     ".env",

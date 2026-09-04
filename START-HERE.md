@@ -4,6 +4,20 @@ You do **not** need Hermes. That Post is open source (MIT License).
 
 Want an AI to walk you through it? Give it **`Install_Instructions.md`** and say: *Walk me through installing That Post. Follow that file. Do not ask me to paste secrets into chat.*
 
+## Live machine or clean PC — same folder
+
+There is only one folder. A clean PC and a working machine use the same files:
+
+- **Clean PC:** unzip, double-click **`install.bat`** (creates `.venv`,
+  downloads from X, enriches, opens search).
+- **Working machine (already has `data\\ideas.sqlite`):** `install.bat`
+  skips the download. `enrich.bat` and `publish.bat` run against the live
+  database — no second copy, no second install.
+
+`enrich.bat` / `publish.bat` use `.venv` when it exists, otherwise they fall
+back to the Hermes agent Python, then `py -3`, then `python`. If Publish asks
+for a PIN or token, those are saved in `data\\.env` for next time.
+
 ## On this computer (A–F)
 
 1. Unzip this folder.
