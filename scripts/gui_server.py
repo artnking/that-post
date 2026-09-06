@@ -24,6 +24,7 @@ SKILL = SCRIPTS.parent
 GUI = SKILL / "gui"
 GUI_HTML = GUI / "index.html"
 GUI_APP = GUI / "app.js"
+GUI_DONATE = GUI / "donate.html"
 GUI_ASSETS = GUI / "assets"
 JSWASM = GUI / "jswasm"
 TYPE_FLAGS = ("bookmark", "post", "reply", "repost", "like")
@@ -58,6 +59,13 @@ def app_js():
         media_type="text/javascript",
         headers={"Cache-Control": "no-store"},
     )
+
+
+@app.get("/donate.html")
+def donate_page():
+    if not GUI_DONATE.exists():
+        raise HTTPException(404, "gui/donate.html missing")
+    return FileResponse(GUI_DONATE, headers={"Cache-Control": "no-store"})
 
 
 @app.get("/assets/{name}")

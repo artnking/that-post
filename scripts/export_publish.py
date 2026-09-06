@@ -63,6 +63,9 @@ def copy_site(out: Path) -> None:
             shutil.rmtree(dest_assets)
         shutil.copytree(assets, dest_assets)
     shutil.copy2(GUI / "app.js", out / "app.js")
+    donate = GUI / "donate.html"
+    if donate.is_file():
+        shutil.copy2(donate, out / "donate.html")
     html = (GUI / "index.html").read_text(encoding="utf-8")
     html = html.replace('src="/app.js"', 'src="./app.js"')
     html = html.replace(
