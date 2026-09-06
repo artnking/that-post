@@ -10,7 +10,7 @@ MIT License. Free.
 
 ## Install
 
-1. Get the zip from the [download page](https://audiobalance.com/thatpost) or from **Releases** on this GitHub repo.
+1. Get the zip from the [download page](https://audiobalance.com/thatpost) or from [Releases](https://github.com/artnking/that-post/releases).
 2. Unzip it.
 3. Hand [Install_Instructions.md](Install_Instructions.md) to ChatGPT, Claude, Grok, DeepSeek, or any competent assistant and say:
 
