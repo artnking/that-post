@@ -45,7 +45,10 @@ def ensure_venv() -> None:
         print("Creating .venv …")
         rc = run([sys.executable, "-m", "venv", str(VENV)])
         if rc != 0:
-            raise SystemExit("Could not create .venv. Is Python 3.11+ on PATH?")
+            raise SystemExit(
+                "Could not create .venv. Need Python 3.11+. "
+                "On Linux Mint/Ubuntu: sudo apt install python3-venv python3-pip"
+            )
     print("Re-running inside .venv …")
     raise SystemExit(run([str(py), str(Path(__file__).resolve()), *sys.argv[1:]]))
 
@@ -64,10 +67,11 @@ def start_search() -> int:
     print()
     print("Starting the local search page …")
     print("  http://127.0.0.1:8790/")
-    print("  PIN 1234 (any username) unless THAT_POST_PASSWORD is set.")
     if os.name == "nt":
         print("A second window will stay open for the search page. Leave it running.")
         subprocess.Popen(gui, creationflags=subprocess.CREATE_NEW_CONSOLE)
+        print()
+        print("http://127.0.0.1:8790/")
         return 0
     return run(gui)
 

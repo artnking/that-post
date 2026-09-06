@@ -6,21 +6,19 @@ ideas.sqlite. /api/stats and /api/search remain as a server-side check.
 """
 from __future__ import annotations
 
-import base64
 import os
-import secrets
 import sqlite3
 import sys
 import tempfile
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse, Response
 
 SCRIPTS = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPTS))
 import search_ideas  # noqa: E402
-from paths import DB, load_env  # noqa: E402
+from paths import DB  # noqa: E402
 
 SKILL = SCRIPTS.parent
 GUI = SKILL / "gui"
@@ -29,7 +27,6 @@ GUI_APP = GUI / "app.js"
 GUI_ASSETS = GUI / "assets"
 JSWASM = GUI / "jswasm"
 TYPE_FLAGS = ("bookmark", "post", "reply", "repost", "like")
-DEFAULT_PAGE_PASSWORD = "1234"
 ASSET_TYPES = {
     ".jpg": "image/jpeg",
     ".jpeg": "image/jpeg",
@@ -43,45 +40,6 @@ JSWASM_TYPES = {
 }
 
 app = FastAPI(title="That Post", docs_url=None, redoc_url=None)
-
-
-def page_password() -> str:
-    env = load_env()
-    return (
-        os.environ.get("THAT_POST_PASSWORD")
-        or env.get("THAT_POST_PASSWORD")
-        or os.environ.get("THE_POST_PASSWORD")
-        or env.get("THE_POST_PASSWORD")
-        or DEFAULT_PAGE_PASSWORD
-    )
-
-
-def _basic_password(header: str) -> str:
-    if not header or not header.lower().startswith("basic "):
-        return ""
-    try:
-        raw = base64.b64decode(header.split(" ", 1)[1].strip()).decode("utf-8")
-    except Exception:
-        return ""
-    if ":" not in raw:
-        return ""
-    return raw.split(":", 1)[1]
-
-
-@app.middleware("http")
-async def password_gate(request: Request, call_next):
-    expected = page_password()
-    got = _basic_password(request.headers.get("authorization") or "")
-    if not expected or not secrets.compare_digest(got, expected):
-        return Response(
-            "Password required",
-            status_code=401,
-            headers={
-                "WWW-Authenticate": 'Basic realm="That Post"',
-                "Cache-Control": "no-store",
-            },
-        )
-    return await call_next(request)
 
 
 @app.get("/")

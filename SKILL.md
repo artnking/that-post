@@ -1,7 +1,7 @@
 ---
 name: that-post
 description: "Idea search over your X bookmarks, likes, and posts."
-version: 1.4.1
+version: 1.4.2
 author: Art King, Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -20,8 +20,8 @@ Idea search over what you bookmarked, liked, or posted.
 
 Find that post you saved and can’t find on X. Keeps a **private, local** SQLite
 index of bookmarks, likes, posts, replies, and reposts, then summarizes each
-row so you can search by idea or keyword. Sync on the PC; publish a **locked
-snapshot** to Netlify for phone search.
+row so you can search by idea or keyword. Sync on the PC; publish a snapshot
+to Netlify for phone search (keep the site private).
 
 Skill id / folder: `that-post`. Display name: **That Post**.
 One folder holds the skill **and** live data (`data/`, gitignored except `.gitkeep`).
@@ -58,9 +58,9 @@ Store `python.exe` stub and can install Python 3.12 via winget.
 
 **Developer app (once, whoever owns the X API app):**
 
-- X developer portal → an app with **user** OAuth 2.0 (not the portal
-  app-only Bearer token).
-- Confidential client.
+- X developer portal (https://console.x.com/ → Apps): **Native App** (public
+  client), **Read**, user OAuth 2.0. Not the Consumer Key / Bearer Token from
+  the first “Application Created” dialog.
 - Callback URI **exactly**: `http://127.0.0.1:8080/callback`
 - Scopes: `tweet.read users.read bookmark.read like.read offline.access`
 - Copy `x_oauth.example.json` to `data/x_oauth.json` and fill client id/secret.
@@ -136,13 +136,14 @@ python3 scripts/publish.py
 Windows: `install.bat` then optional `enrich.bat` then `publish.bat`. Existing
 `data/ideas.sqlite` skips X login and download.
 
-Local search: http://127.0.0.1:8790/ (loopback only, HTTP basic **1234**).
+Local search: http://127.0.0.1:8790/ (loopback only, no PIN).
 The page loads a **snapshot** of the SQLite index into the browser
 (sqlite-wasm). Reload after a sync. Default sort is **Newest**. Query Help
 explains AND / OR / quotes / `*` / NOT — no FTS jargon in the UI.
 
-Phone: `publish.bat` encrypts a stripped copy (`raw_json` removed) and
-uploads with the Netlify API. Same URL on later runs. Publish PIN is 4 digits ≠ 1234.
+Phone: `publish.bat` uploads a stripped copy (`raw_json` removed) with the
+Netlify API. Same URL on later runs. No app PIN — keep the Netlify site
+**private** (Visitor access; sign in with Netlify).
 
 Bookmark folders: picking one or more folders in the search page narrows to
 bookmarks only (other type boxes auto-uncheck). `(No folder)` at the bottom
@@ -174,8 +175,7 @@ clicks Allow.
    Return id, date, author, url, summary, snippet. Do not dump `raw_json` or
    tokens into chat.
 5. **Publish** — `publish.bat` / `scripts/publish.py`. Done when it prints a
-   `https://….netlify.app` URL and the phone can unlock with the **4-digit
-   Publish PIN** (not 1234).
+   `https://….netlify.app` URL and search works. Keep the Netlify site private.
 
 ## Database
 
@@ -206,8 +206,9 @@ author_username, folder.
   `install.bat` ignores it.
 - `getpass` hides pasted Netlify tokens. Paste **once**, Enter. A double paste
   is a bad token (HTTP 401). Delete `NETLIFY_AUTH_TOKEN` from `data/.env` and retry.
-- New Netlify sites start **private**. Phone may require dashboard → Visitor
-  access → Make public **once**. Later publishes to the same site stay public.
+- New Netlify sites start **private**. Leave them private — that is the lock
+  (Netlify login). Do not Make public unless they accept anyone with the URL
+  seeing their bookmarks.
 - Do not print tokens, client secrets, or full tweet JSON in chat.
 - Do not zip `data/ideas.sqlite` for a public package.
 - Phone/Netlify will look unchanged until new `gui/` files are on the machine
@@ -219,5 +220,5 @@ author_username, folder.
 - `COUNT(DISTINCT id)` = `COUNT(*)` after ingest.
 - After enrich, an idea query can hit **summary/keywords**, not only raw text.
 - Human can open http://127.0.0.1:8790/ and recognize their own posts.
-- After publish: phone unlocks with the 4-digit Publish PIN and search works.
+- After publish: the printed Netlify URL opens search (site kept private).
   Photo sits beside the title on a phone-width screen.

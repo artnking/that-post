@@ -15,8 +15,8 @@ There is only one folder. A clean PC and a working machine use the same files:
   database — no second copy, no second install.
 
 `enrich.bat` / `publish.bat` use `.venv` when it exists, otherwise they fall
-back to the Hermes agent Python, then `py -3`, then `python`. If Publish asks
-for a PIN or token, those are saved in `data\\.env` for next time.
+back to the Hermes agent Python, then `py -3`, then `python`. Netlify token
+is saved in `data\\.env` for next time.
 
 ## On this computer (A–F)
 
@@ -30,8 +30,7 @@ for a PIN or token, those are saved in `data\\.env` for next time.
 It installs Python if needed, builds the database from X, and strongly
 encourages OpenRouter ($5 credits; this run uses well under $1) so search
 can use **gemini-3.5-flash-lite** summaries. A **second window** opens
-http://127.0.0.1:8790/ — leave that window open. Local PIN: **1234**
-(any username).
+http://127.0.0.1:8790/ — leave that window open. No PIN on the local page.
 
 If you skip OpenRouter during install, double-click **`enrich.bat`** later.
 
@@ -43,14 +42,11 @@ than $1.
 After local search works:
 
 1. Double-click **`publish.bat`**.
-2. Choose a **Publish PIN** (exactly 4 digits, not 1234).
-3. First time only: paste a Netlify personal access token
+2. First time only: paste a Netlify personal access token
    (paste once — nothing shows). Later publishes reuse it.
 
-It prints a `https://….netlify.app` URL. Open that and type the Publish PIN.
-
-New Netlify sites often start **private**. If the phone asks you to log into
-Netlify, dashboard → Visitor access → Make public (once).
+It prints a `https://….netlify.app` URL as the last line. Open that — no PIN.
+Keep the Netlify site **private** (Visitor access). That is the lock.
 
 The public page is a **copy**. After a later sync, run `publish.bat` again.
 iPhone Chrome: close the tab, then reopen the URL.
@@ -66,5 +62,5 @@ publish.bat
 ## Do not
 
 - Zip or email `data\ideas.sqlite` or `data\x_oauth.json` to strangers
-- Reuse 1234 as the Publish PIN
+- Make the Netlify site public unless you want anyone with the URL to search it
 - Close the search-page window if you still want http://127.0.0.1:8790/

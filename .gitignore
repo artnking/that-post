@@ -14,4 +14,5 @@ data/**
 !templates/empty.sqlite
 dist/
 publish/
+sketches/
 *.sqlite.enc

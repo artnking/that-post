@@ -2,27 +2,30 @@
 
 Idea search over what you bookmarked, liked, or posted.
 
-Private local index (SQLite + http://127.0.0.1:8790/). Skill id: `that-post`.
-One folder: code + `data/` (live DB, gitignored). Public zip uses
-`templates/empty.sqlite` only — never ship `data/ideas.sqlite`.
+**Download and install:** [https://audiobalance.com/thatpost](https://audiobalance.com/thatpost)
 
-```
-python3 -m pip install -r requirements.txt
-mkdir -p data
-cp x_oauth.example.json data/x_oauth.json
-# fill client_id and client_secret; never commit that file
-python3 scripts/auth_x.py
-# A person at this computer signs in to X in the browser and clicks Allow.
-# The agent must not ask for their password. See SKILL.md → "X login".
-python3 scripts/ingest_bookmarks.py --all
-python3 scripts/enrich_bookmarks.py --limit 10
-python3 scripts/launch_gui.py
-```
+Private, local index of your X (Twitter) bookmarks, likes, and posts. Search by idea or keyword. Optional summaries. Optional phone copy on Netlify (keep that site private).
 
-X app callback must be exactly `http://127.0.0.1:8080/callback`.
-User OAuth scopes: `tweet.read users.read bookmark.read like.read offline.access`.
+MIT License. Free.
 
-Optional: `THAT_POST_HOME` to put data somewhere else. `OPENROUTER_API_KEY` for summaries.
+## Install
 
-See `Install_Instructions.md` to walk a human (or ChatGPT / Claude / Grok) through install.
-See `SKILL.md` for the agent procedure. See `references/roadmap.md` for later work.
+1. Get the zip from the [download page](https://audiobalance.com/thatpost) or from **Releases** on this GitHub repo.
+2. Unzip it.
+3. Hand [Install_Instructions.md](Install_Instructions.md) to ChatGPT, Claude, Grok, DeepSeek, or any competent assistant and say:
+
+   > Walk me through installing That Post on this computer. Follow Install_Instructions.md.
+
+Windows, Linux, and Mac. Python 3.11+.
+
+## Do not ship
+
+- `data/ideas.sqlite` (your archive)
+- `data/x_oauth.json` (API keys)
+- `.env` (tokens)
+
+Do not use X’s official logo.
+
+## Agent skill
+
+`SKILL.md` is the Hermes / OpenClaw skill. Folder name: `that-post`.

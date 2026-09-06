@@ -10,6 +10,6 @@ $5 of credits (minimum); this install uses less than $1.
 OpenRouter ($5 credits, gemini-3.5-flash-lite) is strongly recommended for
 idea search. Skip it now and run `enrich.bat` later.
 
-Search: http://127.0.0.1:8790/  PIN 1234.
+Search: http://127.0.0.1:8790/  (no PIN)
 
-Leave the extra window open.
+Leave the extra window open. The last line after a successful install is that URL.

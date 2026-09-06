@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-"""Part 2: lock a snapshot and put it on Netlify.
+"""Part 2: strip a snapshot and put it on Netlify.
 
 Uses the Netlify API (no Node, no drag-and-drop after the first token).
-Never prints tokens or the Publish PIN.
+Never prints tokens. No app PIN — keep the Netlify site private.
 """
 from __future__ import annotations
 
-import getpass
 import os
 import sys
 import webbrowser
@@ -21,15 +20,15 @@ from netlify_deploy import (  # noqa: E402
     NetlifyAuthError,
     create_site,
     deploy_zip,
-    make_public,
     site_url,
     zip_dir,
 )
 from paths import DB, load_env, upsert_env  # noqa: E402
-from publish_crypto import encrypt_index  # noqa: E402
 
 
 def _ask_secret(prompt: str) -> str:
+    import getpass
+
     print("  (nothing will appear as you type or paste — that is normal)")
     try:
         return getpass.getpass(prompt).strip()
@@ -37,15 +36,14 @@ def _ask_secret(prompt: str) -> str:
         return ""
 
 
-def build_locked(out: Path, password: str) -> Path:
+def build_site(out: Path) -> Path:
     if not DB.exists():
         raise SystemExit("No database yet. Run install.bat first (or copy ideas.sqlite into data\\).")
-    print("Building locked search copy …")
+    print("Building search copy …")
     plain = snapshot_stripped(DB)
-    blob = encrypt_index(plain, password)
     copy_site(out)
-    dest = out / "ideas.sqlite.enc"
-    dest.write_bytes(blob)
+    dest = out / "ideas.sqlite"
+    dest.write_bytes(plain)
     print(f"wrote {out}")
     return dest
 
@@ -67,20 +65,7 @@ def ask_netlify_token() -> str:
 def main() -> int:
     out = ROOT / "publish"
     env = load_env()
-    password = env.get("THAT_POST_PUBLISH_PASSWORD") or os.environ.get("THAT_POST_PUBLISH_PASSWORD") or ""
-    if not password:
-        password = _ask_secret("Publish PIN (exactly 4 digits, not 1234): ")
-        if password:
-            upsert_env("THAT_POST_PUBLISH_PASSWORD", password)
-            print("Saved Publish PIN in data/.env (value not printed).")
-    if not password:
-        raise SystemExit("Need a 4-digit Publish PIN.")
-    if not (password.isdigit() and len(password) == 4):
-        raise SystemExit("Publish PIN must be exactly 4 digits.")
-    if password == "1234":
-        raise SystemExit("Do not reuse the local PIN 1234 for a public copy.")
-
-    build_locked(out, password)
+    build_site(out)
 
     token = env.get("NETLIFY_AUTH_TOKEN") or os.environ.get("NETLIFY_AUTH_TOKEN") or ""
     if not token:
@@ -89,12 +74,14 @@ def main() -> int:
         print()
         print("No token — open the publish folder and drag it onto Netlify Drop.")
         print("  https://app.netlify.com/drop")
+        print("Keep the Netlify site private (Visitor access) so only you can open it.")
         webbrowser.open("https://app.netlify.com/drop")
         if os.name == "nt":
             os.startfile(out)  # type: ignore[attr-defined]
         return 0
 
     site_id = env.get("NETLIFY_SITE_ID") or os.environ.get("NETLIFY_SITE_ID") or ""
+    url = ""
     for _attempt in range(3):
         try:
             if not site_id:
@@ -105,22 +92,18 @@ def main() -> int:
                     raise SystemExit("Netlify did not return a site id.")
                 upsert_env("NETLIFY_SITE_ID", site_id)
                 url = site_url(info)
-                if url:
-                    print(f"Site {url}")
             print("Uploading …")
             info = deploy_zip(token, site_id, zip_dir(out))
-            url = site_url(info) or info.get("deploy_ssl_url") or info.get("ssl_url") or ""
-            if not make_public(token, site_id):
-                print("Could not flip Netlify ‘Make public’ from here.")
-                print("If the phone asks you to log into Netlify, open the site in the")
-                print("dashboard → Visitor access → Project visibility → Make public.")
-            print("Published.")
+            url = site_url(info) or info.get("deploy_ssl_url") or info.get("ssl_url") or url or ""
+            print()
+            print("Keep this Netlify site private (Visitor access) so only you can open it.")
+            print("That is the lock — there is no PIN on the page.")
+            print()
             if url:
-                print(url)
+                print(str(url))
                 webbrowser.open(str(url))
             else:
                 print("Open the site from your Netlify dashboard if the URL did not print.")
-            print("Phone: open that URL and type the 4-digit Publish PIN.")
             return 0
         except NetlifyAuthError:
             print()

@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """Part 2: build a static folder for Netlify Drop.
 
-Copies the search page + a locked index (raw JSON stripped, AES-GCM).
-Does not publish. Does not print the password. Never includes .env or x_oauth.json.
+Copies the search page + a stripped index (raw JSON removed, not encrypted).
+Does not publish. Never includes .env or x_oauth.json.
 """
 from __future__ import annotations
 
 import argparse
-import getpass
 import os
 import shutil
 import sqlite3
@@ -19,7 +18,6 @@ SCRIPTS = Path(__file__).resolve().parent
 ROOT = SCRIPTS.parent
 sys.path.insert(0, str(SCRIPTS))
 from paths import DB as DEFAULT_DB  # noqa: E402
-from publish_crypto import KDF_ITERS, encrypt_index  # noqa: E402
 
 GUI = ROOT / "gui"
 
@@ -73,8 +71,7 @@ def copy_site(out: Path) -> None:
     )
     (out / "index.html").write_text(html, encoding="utf-8")
     (out / "config.js").write_text(
-        "window.THAT_POST = { dbUrl: \"./ideas.sqlite.enc\", encrypted: true, kdfIters: %d };\n"
-        % KDF_ITERS,
+        'window.THAT_POST = { dbUrl: "./ideas.sqlite", encrypted: false, kdfIters: 210000 };\n',
         encoding="utf-8",
     )
     (out / "_headers").write_text(
@@ -91,7 +88,7 @@ def copy_site(out: Path) -> None:
         "/*.wasm\n"
         "  Content-Type: application/wasm\n"
         "\n"
-        "/ideas.sqlite.enc\n"
+        "/ideas.sqlite\n"
         "  Cache-Control: no-store\n",
         encoding="utf-8",
     )
@@ -102,26 +99,15 @@ def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--db", type=Path, default=DEFAULT_DB)
     p.add_argument("--out", type=Path, default=ROOT / "publish")
-    p.add_argument("--password", default="", help="prefer env THAT_POST_PUBLISH_PASSWORD")
     args = p.parse_args()
-    password = (
-        args.password
-        or os.environ.get("THAT_POST_PUBLISH_PASSWORD")
-        or getpass.getpass("Publish PIN (exactly 4 digits, not 1234): ")
-    )
-    if not (password.isdigit() and len(password) == 4):
-        raise SystemExit("Publish PIN must be exactly 4 digits.")
-    if password == "1234":
-        raise SystemExit("Do not reuse the local PIN 1234 for a public copy.")
     print("Building stripped index …")
     plain = snapshot_stripped(args.db)
     print(f"stripped snapshot {len(plain)} bytes")
-    blob = encrypt_index(plain, password)
     copy_site(args.out)
-    dest = args.out / "ideas.sqlite.enc"
-    dest.write_bytes(blob)
+    dest = args.out / "ideas.sqlite"
+    dest.write_bytes(plain)
     print(f"wrote {args.out}")
-    print(f"locked index {dest} ({len(blob)} bytes)")
+    print(f"index {dest} ({len(plain)} bytes)")
     print("Preview: python scripts/serve_publish.py")
     print("Then drag the publish folder onto https://app.netlify.com/drop")
     return 0

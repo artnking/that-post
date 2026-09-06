@@ -1,6 +1,6 @@
 # That Post — roadmap
 
-Updated 2026-09-04. Display name **That Post** (skill id `that-post`). Version **1.4.1** (final).
+Updated 2026-09-05. Display name **That Post** (skill id `that-post`). Version **1.4.2**.
 
 Install is **two parts**. They are different products:
 
@@ -30,7 +30,7 @@ Public zip must not include `data/ideas.sqlite`. Use `templates/empty.sqlite`.
 
 - Skill+data: `~/.hermes/skills/social-media/that-post`
 - DB: `that-post/data/ideas.sqlite` (gitignored)
-- Search UI: http://127.0.0.1:8790/ (loopback, HTTP basic PIN `1234`)
+- Search UI: http://127.0.0.1:8790/ (loopback, no PIN)
 - Search runs **in the browser** (sqlite-wasm) against a snapshot of the DB.
   Reload the page after a sync to see new rows. Default sort: **Newest**.
 - UI: Warm Editorial look (floating search band, sticky Refine rail, serif
@@ -64,10 +64,9 @@ Store Python stub is skipped; winget can install 3.12.
 
 ### 4. Part 2 — publish snapshot — done (phone test)
 
-`publish.bat` → AES-GCM `ideas.sqlite.enc` + Netlify API zip deploy.
-First token is saved in `data/.env` (never print). New Netlify sites may
-need **Make public** once. Do not reuse local PIN `1234`. Do not Drop
-an unlocked sqlite.
+`publish.bat` → stripped `ideas.sqlite` + Netlify API zip deploy.
+First token is saved in `data/.env` (never print). Keep the Netlify site
+**private** (Visitor access). Do not Drop an unlocked sqlite onto a public URL.
 
 ### 5. Double-click desktop app — later
 

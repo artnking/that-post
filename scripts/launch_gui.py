@@ -37,26 +37,13 @@ def main() -> int:
     thread = threading.Thread(target=server.run, daemon=True)
     thread.start()
     ok = False
-    import base64
-
-    sys.path.insert(0, str(Path(__file__).resolve().parent))
-    from gui_server import page_password  # noqa: E402
-
-    token = base64.b64encode(b":" + page_password().encode()).decode()
     for _ in range(50):
         try:
-            req = urllib.request.Request(
-                URL + "api/stats",
-                headers={"Authorization": f"Basic {token}"},
-            )
-            with urllib.request.urlopen(req, timeout=1) as r:
+            with urllib.request.urlopen(URL + "api/stats", timeout=1) as r:
                 if r.status == 200:
                     ok = True
                     break
-        except urllib.error.HTTPError as e:
-            if e.code in (401, 403):
-                time.sleep(0.1)
-                continue
+        except urllib.error.HTTPError:
             time.sleep(0.1)
         except (urllib.error.URLError, TimeoutError):
             time.sleep(0.1)
