@@ -26,6 +26,13 @@ Windows, Linux, and Mac. Python 3.11+.
 
 Do not use X’s official logo.
 
+## Contact
+
+- **Bugs and ideas:** [GitHub Issues](https://github.com/artnking/that-post/issues)
+- **Email:** [ThatPost@audiobalance.com](mailto:ThatPost@audiobalance.com)
+
+Pull requests are welcome. Do not commit `data/ideas.sqlite`, `data/x_oauth.json`, or `.env`.
+
 ## Agent skill
 
 `SKILL.md` is the Hermes / OpenClaw skill. Folder name: `that-post`.
