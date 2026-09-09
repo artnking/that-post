@@ -1,6 +1,6 @@
 # That Post — roadmap
 
-Updated 2026-09-06. Display name **That Post** (skill id `that-post`). Version **1.4.3**.
+Updated 2026-09-06. Display name **That Post** (skill id `that-post`). Version **1.4.4**.
 
 Install is **two parts**. They are different products:
 
@@ -71,6 +71,15 @@ First token is saved in `data/.env` (never print). Keep the Netlify site
 ### 5. Double-click desktop app — later
 
 Same Part 1 engine, no “install Python first.”
+
+### 5b. User-editable enrich prompt — later (do not build now)
+
+Summary prompt is hardcoded in `scripts/enrich_bookmarks.py` (`SYSTEM`).
+Plan: ship `prompts/enrich_system.txt`; override with `data/enrich_system.txt`;
+`edit-prompt.bat` copies default then opens Notepad. JSON shape must stay or
+enrich breaks. Changing the prompt does not re-summarize existing rows —
+would also need a re-enrich (clear `enriched_at`, costs OpenRouter again).
+Not a control on the search page.
 
 ### 6. Hosted multi-user web — not this product
 

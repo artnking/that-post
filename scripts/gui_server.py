@@ -13,7 +13,7 @@ import tempfile
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import FileResponse, JSONResponse, Response
 
 SCRIPTS = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPTS))
@@ -66,6 +66,20 @@ def donate_page():
     if not GUI_DONATE.exists():
         raise HTTPException(404, "gui/donate.html missing")
     return FileResponse(GUI_DONATE, headers={"Cache-Control": "no-store"})
+
+
+@app.get("/update/check")
+def update_check():
+    from version_check import current_version, fetch_latest, summarize_release
+
+    try:
+        release = fetch_latest()
+    except Exception:
+        raise HTTPException(502, "Could not reach GitHub") from None
+    return JSONResponse(
+        summarize_release(release, current_version()),
+        headers={"Cache-Control": "no-store"},
+    )
 
 
 @app.get("/assets/{name}")
