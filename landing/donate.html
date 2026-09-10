@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Donate — That Post</title>
+  <style>
+    :root {
+      --paper: #faf7f1;
+      --paper-2: #fffdf8;
+      --ink: #1c1917;
+      --muted: #78716c;
+      --line: #e7e0d4;
+      --accent: #9a3412;
+      --serif: Georgia, "Times New Roman", serif;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      background: var(--paper);
+      color: var(--ink);
+      line-height: 1.5;
+    }
+    main { max-width: 36rem; margin: 0 auto; padding: 22px 18px 28px; }
+    h1 {
+      font-family: var(--serif);
+      font-size: 2rem;
+      letter-spacing: -0.02em;
+      margin: 0 0 6px;
+    }
+    .subtitle { color: var(--muted); margin: 0 0 22px; }
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 22px 22px 20px;
+      box-shadow: 0 14px 40px rgba(60,40,20,.10);
+    }
+    h2 { font-size: 1.15rem; margin: 0 0 14px; }
+    .chain { font-size: 1.05rem; line-height: 1.65; margin: 0 0 18px; }
+    .chain p { margin: 0 0 4px; }
+    .muha { color: var(--accent); font-weight: 700; margin-top: 10px !important; }
+    .beans { letter-spacing: 2px; font-size: 1.4rem; margin: 0 0 18px; }
+    .buttons { display: flex; flex-wrap: wrap; gap: 10px; }
+    .amt {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 72px; min-height: 44px; padding: 10px 16px;
+      border-radius: 10px; background: var(--ink); color: #fff;
+      text-decoration: none; font-weight: 700;
+    }
+    .amt:hover { background: #000; }
+    .note { margin: 18px 0 0; color: var(--muted); font-size: .92rem; }
+    .btc { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
+    .btc h3 { margin: 0 0 10px; font-size: 1rem; }
+    .btc-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .addr {
+      font-family: ui-monospace, Consolas, monospace;
+      font-size: .85rem;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      word-break: break-all;
+      flex: 1 1 240px;
+    }
+    .copy, .btc-link {
+      border: 0; border-radius: 8px; padding: 10px 14px;
+      font-weight: 700; cursor: pointer; text-decoration: none;
+      color: #111; background: #f5c518; font-size: .92rem; min-height: 44px;
+    }
+    .copy:hover, .btc-link:hover { background: #ffd24a; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Donate</h1>
+    <p class="subtitle">Optional. Any amount. No extra features unlocked. Just jelly beans.</p>
+    <div class="card">
+      <h2>Why should you donate to That Post?</h2>
+      <div class="chain">
+        <p>More donation = more money</p>
+        <p>More money allows me buy more jelly beans</p>
+        <p>More jelly beans makes me write more code</p>
+        <p>More code means more features</p>
+        <p>More features make you more productive</p>
+        <p>More productive so you earn more money</p>
+        <p>More money you earn more donation to me</p>
+        <p class="muha">More Muhahaha…</p>
+      </div>
+      <div class="beans" aria-hidden="true">🍬 🍬 🍬</div>
+      <div class="buttons">
+        <a class="amt" href="https://www.paypal.me/artnking/5" target="_blank" rel="noopener">$5</a>
+        <a class="amt" href="https://www.paypal.me/artnking/10" target="_blank" rel="noopener">$10</a>
+        <a class="amt" href="https://www.paypal.me/artnking/20" target="_blank" rel="noopener">$20</a>
+        <a class="amt" href="https://www.paypal.me/artnking/50" target="_blank" rel="noopener">$50</a>
+      </div>
+      <p class="note">
+        Buttons go to <strong>paypal.me/artnking</strong> with the amount filled in.
+        You do not need a PayPal account — a debit or credit card works.
+        Donations are optional and do not change how the software works.
+      </p>
+      <div class="btc">
+        <h3>Bitcoin here:</h3>
+        <div class="btc-row">
+          <code class="addr" id="btc-addr">3DrhR7EUZaqSP8R9jfuUj9Sj4ksXWLtuTG</code>
+          <button class="copy" type="button" id="copy-btc">Copy</button>
+          <a class="btc-link" href="bitcoin:3DrhR7EUZaqSP8R9jfuUj9Sj4ksXWLtuTG?label=That%20Post">Open wallet</a>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script>
+    document.getElementById("copy-btc").addEventListener("click", async function () {
+      var addr = document.getElementById("btc-addr").textContent.trim();
+      try {
+        await navigator.clipboard.writeText(addr);
+        this.textContent = "Copied";
+        var t = this;
+        setTimeout(function () { t.textContent = "Copy"; }, 1500);
+      } catch (e) {
+        prompt("Copy this Bitcoin address:", addr);
+      }
+    });
+  </script>
+<script data-goatcounter="https://artnking.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

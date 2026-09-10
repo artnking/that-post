@@ -4,6 +4,8 @@ Idea search over what you bookmarked, liked, or posted.
 
 **Download and install:** [https://audiobalance.com/thatpost](https://audiobalance.com/thatpost)
 
+Public download page source (GoatCounter): `landing/`. Live traffic: [artnking.goatcounter.com](https://artnking.goatcounter.com). Not used on local search.
+
 Private, local index of your X (Twitter) bookmarks, likes, and posts. Search by idea or keyword. Optional summaries. Optional phone copy on Netlify (keep that site private).
 
 MIT License. Free.

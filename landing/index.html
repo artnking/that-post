@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>That Post — idea search over your X archive</title>
+<meta name="description" content="Find that post you saved and can’t find on X. Private, local search of your bookmarks, likes, and posts. Free, MIT License.">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --paper: #faf7f1;
+    --paper-2: #fffdf8;
+    --ink: #1c1917;
+    --muted: #78716c;
+    --faint: #a8a29e;
+    --line: #e7e0d4;
+    --accent: #9a3412;
+    --radius: 14px;
+    --serif: Georgia, "Times New Roman", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  body {
+    font-family: var(--sans);
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .masthead {
+    border-bottom: 1px solid var(--line);
+    background: var(--paper-2);
+  }
+  .masthead-inner {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 26px 28px 18px;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 24px;
+    align-items: start;
+  }
+  .kicker {
+    font-size: 12px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  h1 {
+    font-family: var(--serif);
+    font-size: 44px;
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .deck {
+    color: var(--muted);
+    font-size: 16px;
+    max-width: 34rem;
+  }
+  .photo-card {
+    display: none;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 14px 40px rgba(60,40,20,.12);
+  }
+  @media (min-width: 960px) {
+    .photo-card { display: block; }
+  }
+  .photo-card img {
+    display: block; width: 100%; height: 380px;
+    object-fit: cover; object-position: center 18%;
+  }
+  .photo-card figcaption { padding: 10px 12px; font-size: 12px; color: var(--muted); }
+  .brand-row { }
+  .photo-mobile { display: none; }
+  @media (max-width: 959px) {
+    .masthead-inner { grid-template-columns: 1fr; }
+    h1 { font-size: 34px; }
+    .brand-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; height: 50vh; max-height: 50vh; }
+    .brand-row > div:first-child { margin: 0; flex: 1 1 auto; min-width: 0; }
+    .photo-mobile {
+      display: block; height: 100%; width: auto; max-width: 48%;
+      object-fit: cover; object-position: center 18%;
+      border-radius: 12px; border: 1px solid var(--line); flex: 0 0 auto;
+      background: #fff;
+    }
+  }
+  .band {
+    max-width: 1080px;
+    margin: -22px auto 0;
+    padding: 0 28px 48px;
+    position: relative;
+    z-index: 2;
+  }
+  .card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: 0 18px 55px rgba(60,40,20,.14);
+    padding: 22px 22px 20px;
+  }
+  .card h2 {
+    font-family: var(--serif);
+    font-size: 22px;
+    letter-spacing: -0.01em;
+    margin: 0 0 10px;
+  }
+  .card p, .card li { color: #44403c; font-size: 15px; }
+  .card ol { margin: 10px 0 0 1.2rem; }
+  .card li { margin: 6px 0; }
+  .card a { color: var(--accent); font-weight: 600; }
+  .dl-row {
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+    margin: 16px 0 8px;
+  }
+  .button {
+    display: inline-flex; align-items: center; justify-content: center;
+    font: inherit; font-weight: 700; font-size: 15px;
+    background: var(--ink); color: #fff;
+    border: 0; border-radius: 12px;
+    padding: 14px 22px; min-height: 52px; min-width: 12rem;
+    text-decoration: none; cursor: pointer;
+  }
+  .button:hover { background: #000; color: #fff; }
+  .button-secondary {
+    background: transparent; color: var(--ink);
+    border: 1px solid var(--line);
+  }
+  .button-secondary:hover { background: var(--chip, #f1eadd); color: var(--ink); }
+  .note { font-size: 13px; color: var(--muted); margin-top: 8px; }
+  .prompt {
+    margin-top: 14px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font: 13px/1.45 ui-monospace, Consolas, monospace;
+    color: var(--ink);
+    white-space: pre-wrap;
+  }
+  .copy-row { margin-top: 8px; }
+  .copy-row button {
+    font: inherit; font-size: 13px; font-weight: 600;
+    background: none; border: 0; color: var(--accent); cursor: pointer;
+    min-height: 44px; padding: 0 4px;
+  }
+  .stack { display: flex; flex-direction: column; gap: 18px; margin-top: 22px; }
+  .bot {
+    max-width: 1080px; margin: 0 auto; padding: 8px 28px 40px;
+    font-size: 13px; color: var(--muted);
+  }
+  .bot a { color: var(--accent); font-weight: 600; text-decoration: none; }
+  .donate-cta {
+    display: inline-flex; flex-direction: column; align-items: center; gap: 5px;
+    text-decoration: none; color: inherit; vertical-align: middle;
+  }
+  .donate-cta .pill {
+    display: inline-block; background: #f5c518; color: #111;
+    font-weight: 800; font-size: 14px; padding: 6px 22px;
+    border-radius: 999px; border: 2px solid #111; line-height: 1.2;
+  }
+  .donate-cta:hover .pill { background: #ffd24a; }
+  .card-row { display: flex; align-items: center; gap: 4px; }
+  .cc {
+    height: 16px; width: 26px; border-radius: 3px; overflow: hidden;
+    border: 1px solid rgba(0,0,0,.12); background: #fff;
+  }
+  .cc svg { display: block; width: 100%; height: 100%; }
+  #donate-pop {
+    position: fixed; inset: 0; z-index: 40;
+    background: rgba(28,25,23,.45);
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 28px 16px 40px; overflow: auto;
+  }
+  #donate-pop[hidden] { display: none !important; }
+  .donate-sheet {
+    position: relative; width: min(40rem, 100%);
+    background: #fff; border-radius: 16px; overflow: hidden;
+    box-shadow: 0 24px 60px rgba(60,40,20,.28);
+  }
+  .donate-sheet iframe { display: block; width: 100%; height: min(78vh, 720px); border: 0; }
+  .donate-x {
+    position: absolute; top: 8px; right: 10px; z-index: 1;
+    width: 40px; height: 40px; border: 0; border-radius: 10px;
+    background: #fff; color: #1c1917; font-size: 22px; cursor: pointer;
+  }
+  @media (max-width: 640px) {
+    .masthead-inner, .band, .bot { padding-left: 14px; padding-right: 14px; }
+    .button { width: 100%; }
+  }
+</style>
+</head>
+<body>
+  <div class="masthead">
+    <div class="masthead-inner">
+      <div class="brand-row">
+        <div>
+          <div class="kicker">Your X archive · idea search</div>
+          <h1>That Post</h1>
+          <p class="deck">Find that post you saved and can’t find on X. Search your own bookmarks, likes, and posts by idea — not by scrolling.</p>
+        </div>
+        <img class="photo-mobile" src="assets/bg-phone.jpg" alt="">
+      </div>
+      <figure class="photo-card">
+        <img src="assets/bg-phone.jpg" alt="">
+        <figcaption>Your saved X archive</figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <div class="band">
+    <div class="card">
+      <h2>Download</h2>
+      <p>Free, open source (MIT License). Runs on your computer — Windows, Linux, or Mac. Your bookmarks stay private.</p>
+      <div class="dl-row">
+        <a class="button" href="that-post.zip">Download That Post</a>
+        <a class="button button-secondary" href="Install_Instructions.md">Install_Instructions.md</a>
+      </div>
+      <p class="note">One zip for all three operating systems. It does not include your X keys or your database.</p>
+    </div>
+
+    <div class="stack">
+      <div class="card">
+        <h2>Let an LLM walk you through it</h2>
+        <p>Unzip the download. Hand <strong>Install_Instructions.md</strong> (inside the zip, and linked above) to ChatGPT, Claude, Grok, DeepSeek, or any competent assistant, and say:</p>
+        <div class="prompt" id="prompt">Walk me through installing That Post on this computer. Follow Install_Instructions.md.</div>
+        <div class="copy-row"><button type="button" id="copy">Copy that prompt</button></div>
+      </div>
+      <div class="card">
+        <h2>What it is</h2>
+        <p><strong>That Post</strong> keeps a private, local index of what you bookmarked, liked, or posted, then you search by idea or keyword. Optional summaries (OpenRouter) make topic search work better. An optional phone copy can go on Netlify — keep that site private.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="bot">
+    From <a href="https://audiobalance.com/">AudioBalance LLC</a>
+    · MIT License
+    · Contact: <a href="mailto:ThatPost@audiobalance.com">ThatPost@audiobalance.com</a>
+    ·
+    <a class="donate-cta" href="donate.html" id="donate-open">
+      <span class="pill">Donate</span>
+      <span class="card-row" aria-hidden="true">
+        <span class="cc" title="Visa"><svg viewBox="0 0 40 26" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="26" rx="3" fill="#fff"/><text x="20" y="17.5" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-size="10" font-style="italic" font-weight="700" fill="#1a1f71">VISA</text></svg></span>
+        <span class="cc" title="Mastercard"><svg viewBox="0 0 40 26" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="26" rx="3" fill="#fff"/><circle cx="16" cy="13" r="7.2" fill="#eb001b"/><circle cx="24" cy="13" r="7.2" fill="#f79e1b"/><path d="M20 7.6a7.2 7.2 0 0 1 0 10.8 7.2 7.2 0 0 1 0-10.8z" fill="#ff5f00"/></svg></span>
+        <span class="cc" title="American Express"><svg viewBox="0 0 40 26" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="26" rx="3" fill="#2e77bc"/><text x="20" y="16.8" text-anchor="middle" font-family="Arial, sans-serif" font-size="7.2" font-weight="800" fill="#fff">AMEX</text></svg></span>
+        <span class="cc" title="Discover"><svg viewBox="0 0 40 26" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="26" rx="3" fill="#fff"/><text x="16" y="16.5" text-anchor="middle" font-family="Arial, sans-serif" font-size="6.4" font-weight="700" fill="#111">DISCOVER</text><circle cx="33" cy="13" r="5" fill="#f76f1a"/></svg></span>
+      </span>
+    </a>
+  </div>
+  <div id="donate-pop" hidden>
+    <div class="donate-sheet">
+      <button type="button" class="donate-x" id="donate-close" aria-label="Close">×</button>
+      <iframe src="donate.html" title="Donate to That Post"></iframe>
+    </div>
+  </div>
+  <script>
+    document.getElementById("copy").addEventListener("click", function () {
+      var t = document.getElementById("prompt").textContent;
+      function done() { document.getElementById("copy").textContent = "Copied"; }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(t).then(done);
+      }
+    });
+    (function () {
+      var open = document.getElementById("donate-open");
+      var pop = document.getElementById("donate-pop");
+      var close = document.getElementById("donate-close");
+      if (!open || !pop) return;
+      function hide() { pop.hidden = true; }
+      function show(e) { e.preventDefault(); pop.hidden = false; }
+      open.addEventListener("click", show);
+      if (close) close.addEventListener("click", hide);
+      pop.addEventListener("click", function (e) { if (e.target === pop) hide(); });
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && !pop.hidden) hide();
+      });
+    })();
+  </script>
+<script data-goatcounter="https://artnking.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

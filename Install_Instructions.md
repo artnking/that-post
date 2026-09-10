@@ -1,4 +1,4 @@
-# That Post — install instructions (v1.4.4)
+# That Post — install instructions (v1.4.5)
 
 **That Post** is a private search index of **your** X bookmarks, likes, and posts. It lives on your PC. You search by idea, topic, or keyword — not by scrolling X. An optional copy can be opened on your phone. Keep that Netlify site **private**.
 

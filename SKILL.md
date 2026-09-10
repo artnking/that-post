@@ -1,7 +1,7 @@
 ---
 name: that-post
 description: "Idea search over your X bookmarks, likes, and posts."
-version: 1.4.4
+version: 1.4.5
 author: Art King, Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -213,6 +213,8 @@ author_username, folder.
 - Do not zip `data/ideas.sqlite` for a public package.
 - Phone/Netlify will look unchanged until new `gui/` files are on the machine
   that runs `publish.bat`. iPhone Chrome: close the tab, then reopen the URL.
+- A git/GitHub roll is not done until `live-audiobalance` is deployed to
+  **artking** (audiobalance.com/thatpost). That is not `publish.bat`.
 
 ## Verification
 
