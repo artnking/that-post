@@ -18,6 +18,8 @@ SKIP_DIR_NAMES = {
     "publish",
     "sketches",
     "landing",
+    "tests",
+    "references",
 }
 SKIP_FILE_NAMES = {
     ".env",
@@ -26,6 +28,16 @@ SKIP_FILE_NAMES = {
     "ideas.sqlite",
     "ideas.sqlite-wal",
     "ideas.sqlite-shm",
+    ".gitignore",
+    "SKILL.md",
+    "START-HERE.md",
+    "INSTALL-PC.md",
+    "INSTALL-PUBLISH.md",
+    "pack_pc_install.py",
+    "test_gemini_enrich.py",
+    "serve_publish.py",
+    "publish_crypto.py",
+    "query_ideas.py",
 }
 
 

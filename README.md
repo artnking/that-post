@@ -2,29 +2,28 @@
 
 Idea search over what you bookmarked, liked, or posted.
 
-**Download and install:** [https://audiobalance.com/thatpost](https://audiobalance.com/thatpost)
-
-Public download page source (GoatCounter): `landing/`. Live traffic: [artnking.goatcounter.com](https://artnking.goatcounter.com). Not used on local search.
-
 Private, local index of your X (Twitter) bookmarks, likes, and posts. Search by idea or keyword. Optional summaries. Optional phone copy on Netlify (keep that site private).
 
-MIT License. Free.
+**Download:** [https://audiobalance.com/thatpost](https://audiobalance.com/thatpost)  
+**License:** MIT. Free.
 
 ## Install
 
-1. Get the zip from the [download page](https://audiobalance.com/thatpost) or from [Releases](https://github.com/artnking/that-post/releases).
+1. Get the zip from the [download page](https://audiobalance.com/thatpost) or [Releases](https://github.com/artnking/that-post/releases).
 2. Unzip it.
-3. Hand [Install_Instructions.md](Install_Instructions.md) to ChatGPT, Claude, Grok, DeepSeek, or any competent assistant and say:
+3. Hand **Install_Instructions.md** to ChatGPT, Claude, Grok, DeepSeek, or any competent assistant and say:
 
    > Walk me through installing That Post on this computer. Follow Install_Instructions.md.
 
 Windows, Linux, and Mac. Python 3.11+.
 
+After it works, **User_Guide.md** is how you keep the index up to date (`sync.bat` / `python3 scripts/sync_x.py`).
+
 ## Do not ship
 
-- `data/ideas.sqlite` (your archive)
-- `data/x_oauth.json` (API keys)
-- `.env` (tokens)
+- `data/ideas.sqlite`
+- `data/x_oauth.json`
+- `.env`
 
 Do not use X’s official logo.
 
@@ -34,7 +33,3 @@ Do not use X’s official logo.
 - **Email:** [ThatPost@audiobalance.com](mailto:ThatPost@audiobalance.com)
 
 Pull requests are welcome. Do not commit `data/ideas.sqlite`, `data/x_oauth.json`, or `.env`.
-
-## Agent skill
-
-`SKILL.md` is the Hermes / OpenClaw skill. Folder name: `that-post`.

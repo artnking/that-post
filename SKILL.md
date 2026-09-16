@@ -1,7 +1,7 @@
 ---
 name: that-post
 description: "Idea search over your X bookmarks, likes, and posts."
-version: 1.4.5
+version: 1.4.6
 author: Art King, Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -211,6 +211,7 @@ author_username, folder.
   seeing their bookmarks.
 - Do not print tokens, client secrets, or full tweet JSON in chat.
 - Do not zip `data/ideas.sqlite` for a public package.
+- Public zip is the app only (`pack_pc_install.py` skips SKILL.md, tests, roadmap, packing scripts).
 - Phone/Netlify will look unchanged until new `gui/` files are on the machine
   that runs `publish.bat`. iPhone Chrome: close the tab, then reopen the URL.
 - A git/GitHub roll is not done until `live-audiobalance` is deployed to

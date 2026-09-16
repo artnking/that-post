@@ -1,4 +1,4 @@
-# That Post — install instructions (v1.4.5)
+# That Post — install instructions (v1.4.6)
 
 **That Post** is a private search index of **your** X bookmarks, likes, and posts. It lives on your PC. You search by idea, topic, or keyword — not by scrolling X. An optional copy can be opened on your phone. Keep that Netlify site **private**.
 
@@ -17,7 +17,7 @@ Two files are enough:
 1. **`that-post-pc-YYYY-MM-DD.zip`** — the program. No secrets. No live database.
 2. **This `Install_Instructions.md`** — the procedure. A copy also sits inside the zip.
 
-Unzip the zip to a folder. Do **all** work inside that folder.
+Unzip the zip to a folder. Do **all** work inside that folder. After install, **User_Guide.md** (inside the zip) is how you keep the index up to date.
 
 - **Windows:** `install.bat`, `enrich.bat`, `publish.bat`, and `sync.bat` live there, next to `scripts/`, `gui/`, and `x_oauth.example.json`.
 - **Mac / Linux:** ignore the `.bat` files. Use `python3 scripts/setup_local.py` (same folder).
