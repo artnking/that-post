@@ -133,10 +133,24 @@
   }
   .button-secondary:hover { background: var(--chip, #f1eadd); color: var(--ink); }
   .note { font-size: 13px; color: var(--muted); margin-top: 8px; }
+  .shot-wrap {
+    margin-top: 22px;
+    max-width: 28rem;
+  }
+  .shot-wrap h3 {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 8px;
+  }
   .shot {
     display: block; width: 100%; height: auto;
-    margin-top: 16px;
-    border-radius: 12px; border: 1px solid var(--line);
+    border-radius: 10px;
+    border: 1px solid #c4b8a4;
+    box-shadow: 0 8px 24px rgba(60,40,20,.12);
   }
   .prompt {
     margin-top: 14px;
@@ -228,7 +242,10 @@
         <a class="button button-secondary" href="User_Guide.md">User_Guide.md</a>
       </div>
       <p class="note">One zip for all three operating systems. It does not include your X keys or your database.</p>
-      <img class="shot" src="search.jpg" alt="That Post search for Derek Thompson">
+      <div class="shot-wrap">
+        <h3>Screenshot of the actual search screen</h3>
+        <img class="shot" src="search.jpg" alt="That Post search box and results for Derek Thompson">
+      </div>
     </div>
 
     <div class="stack">
