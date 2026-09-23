@@ -20,6 +20,8 @@ SKIP_DIR_NAMES = {
     "landing",
     "tests",
     "references",
+    "dev",
+    "docs",
 }
 SKIP_FILE_NAMES = {
     ".env",

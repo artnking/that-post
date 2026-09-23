@@ -1,6 +1,6 @@
 # That Post — roadmap
 
-Updated 2026-09-10. Display name **That Post** (skill id `that-post`). Version **1.4.6**.
+Updated 2026-09-22. Display name **That Post** (skill id `that-post`). Version **1.4.7**.
 
 Install is **two parts**. They are different products:
 

@@ -43,5 +43,7 @@ def test_zip_drops_hermes_and_dev():
         "scripts/publish_crypto.py",
         "scripts/query_ideas.py",
         "landing/index.html",
+        "dev/landing/index.html",
+        "docs/search.jpg",
     ):
         assert not keep(ROOT / rel), rel
